@@ -15,8 +15,8 @@ subscriptions model =
 
         Just tabDrag ->
             Sub.batch
-                [ Mouse.moves TabDragging
-                , Mouse.ups TabDragEnd
+                [ Mouse.moves (TabDragging tabDrag)
+                , Mouse.ups (TabDragEnd tabDrag)
                 ]
 
 
@@ -40,7 +40,7 @@ type alias Model =
 
 init : ( Model, Cmd Msg )
 init =
-    ( { tabs = [ "Tab 1", "Tab 2", "Tab 3" ]
+    ( { tabs = [ "Tab 1", "Tab 2", "Tab 3", "Tab 4", "Tab 5", "Tab 6" ]
       , selected = "Tab 1"
       , tabDrag = Nothing
       }
@@ -55,8 +55,8 @@ init =
 type Msg
     = SetActive String
     | TabDragStart Int Mouse.Position
-    | TabDragging Mouse.Position
-    | TabDragEnd Mouse.Position
+    | TabDragging TabDrag Mouse.Position
+    | TabDragEnd TabDrag Mouse.Position
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -73,16 +73,124 @@ pureUpdate msg model =
         TabDragStart tabIndex xy ->
             { model | tabDrag = Just <| TabDrag xy xy tabIndex }
 
-        TabDragging xy ->
-            { model | tabDrag = Maybe.map (setCurrent xy) model.tabDrag }
+        TabDragging tabDrag xy ->
+            { model | tabDrag = Just <| setCurrent xy tabDrag }
 
-        TabDragEnd xy ->
-            { model | tabDrag = Nothing }
+        TabDragEnd tabDrag xy ->
+            model
+                |> dropTab tabDrag xy
 
 
 setCurrent : Mouse.Position -> TabDrag -> TabDrag
 setCurrent xy tabDrag =
     { tabDrag | current = xy }
+
+
+
+-- Shift right
+--            |
+-- i = [1, 2, 3, 4, 5, 6]
+--                  |
+-- o = [1, 2, 4, 5, 3, 6]
+-- [1, 2] ++ [4, 5] ++ [3] ++ [6]
+-- Shift left
+--                  |
+-- i = [1, 2, 3, 4, 5, 6]
+--            |
+-- o = [1, 2, 5, 3, 4, 6]
+-- [1, 2] ++ [5] ++ [3, 4] ++ [6]
+
+
+shiftTabs : Int -> Int -> List String -> List String
+shiftTabs newIndex selectedIndex tabs =
+    let
+        tabsUntilFirst first =
+            List.take first tabs
+
+        tabsBetweenShiftRight first second =
+            tabs
+                |> List.drop (first + 1)
+                |> List.take (second - first)
+
+        tabsBetweenShiftLeft first second =
+            tabs
+                |> List.drop first
+                |> List.take (second - first)
+
+        restOfTabs second =
+            List.drop (second + 1) tabs
+
+        shiftLeft first second selectedTab =
+            List.concat
+                [ tabsUntilFirst first
+                , [ selectedTab ]
+                , tabsBetweenShiftLeft first second
+                , restOfTabs second
+                ]
+
+        shiftRight first second selectedTab =
+            List.concat
+                [ tabsUntilFirst first
+                , tabsBetweenShiftRight first second
+                , [ selectedTab ]
+                , restOfTabs second
+                ]
+
+        shift selectedIndex newIndex tab =
+            if selectedIndex < newIndex then
+                shiftRight selectedIndex newIndex tab
+            else
+                shiftLeft newIndex selectedIndex tab
+    in
+        List.drop selectedIndex tabs
+            |> List.head
+            |> Maybe.map (shift selectedIndex newIndex)
+            |> Maybe.withDefault tabs
+
+
+dropTab : TabDrag -> Mouse.Position -> Model -> Model
+dropTab { start, tabIndex } end ({ tabs } as model) =
+    let
+        dx =
+            end.x - start.x
+
+        tabWidth =
+            100
+
+        offsetFromPrevTab =
+            start.x % tabWidth
+
+        distToNextTab =
+            tabWidth - offsetFromPrevTab
+
+        movingLeft =
+            dx > 0
+
+        movingRight =
+            dx < 0
+
+        crossedToPrevTab =
+            dx > offsetFromPrevTab
+
+        crossedToNextTab =
+            abs dx > distToNextTab
+
+        newIndex =
+            end.x // tabWidth
+
+        newTabs =
+            if
+                (movingLeft && crossedToPrevTab)
+                    || (movingRight && crossedToNextTab)
+            then
+                shiftTabs newIndex tabIndex tabs
+            else
+                tabs
+    in
+        { model
+            | tabDrag = Nothing
+            , tabs = newTabs
+        }
 
 
 
