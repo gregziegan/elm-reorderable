@@ -1,7 +1,7 @@
 module DraggableTabs exposing (..)
 
 import Html exposing (..)
-import Html.Attributes exposing (class, classList, draggable)
+import Html.Attributes exposing (class, classList, draggable, style)
 import Html.Events exposing (onClick, on)
 import Json.Decode as Json
 import Mouse
@@ -95,7 +95,7 @@ view model =
         [ viewTabs model
         , model.tabDrag
             `Maybe.andThen` (\{ tabIndex } -> getTabByIndex model.tabs tabIndex)
-            |> Maybe.map viewDraggingTab
+            |> Maybe.map (viewDraggingTab model.tabDrag)
             |> Maybe.withDefault (text "")
         ]
 
@@ -122,10 +122,25 @@ viewTab model index tab =
         [ text tab ]
 
 
-viewDraggingTab : String -> Html Msg
-viewDraggingTab tab =
-    div [ class "tab dragging-tab" ]
-        [ text tab ]
+px int =
+    (toString int) ++ "px"
+
+
+viewDraggingTab : Maybe TabDrag -> String -> Html Msg
+viewDraggingTab maybeTabDrag tab =
+    case maybeTabDrag of
+        Just { current } ->
+            div
+                [ class "tab dragging-tab"
+                , style
+                    [ ( "top", px current.y )
+                    , ( "left", px current.x )
+                    ]
+                ]
+                [ text tab ]
+
+        Nothing ->
+            text ""
 
 
 

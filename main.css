@@ -15,4 +15,5 @@
 
 .dragging-tab {
   background-color: magenta;
+  position: absolute;
 }
