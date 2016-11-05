@@ -7,3 +7,7 @@
 .tab-list {
   display: flex;
 }
+
+.tab-selected {
+  background-color: cyan;
+}

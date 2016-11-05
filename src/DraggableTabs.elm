@@ -1,7 +1,8 @@
 module DraggableTabs exposing (..)
 
 import Html exposing (..)
-import Html.Attributes exposing (class)
+import Html.Attributes exposing (class, classList)
+import Html.Events exposing (onClick)
 
 
 subscriptions : Model -> Sub Msg
@@ -14,12 +15,18 @@ subscriptions model =
 
 
 type alias Model =
-    { tabs : List String }
+    { tabs : List String
+    , selected : String
+    }
 
 
 init : ( Model, Cmd Msg )
 init =
-    ( { tabs = [ "Tab 1", "Tab 2", "Tab 3" ] }, Cmd.none )
+    ( { tabs = [ "Tab 1", "Tab 2", "Tab 3" ]
+      , selected = "Tab 1"
+      }
+    , Cmd.none
+    )
 
 
 
@@ -32,7 +39,9 @@ type Msg
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
-    ( model, Cmd.none )
+    case msg of
+        SetActive tabId ->
+            ( { model | selected = tabId }, Cmd.none )
 
 
 
@@ -42,10 +51,16 @@ update msg model =
 view : Model -> Html Msg
 view model =
     div [ class "tab-list" ]
-        (List.map viewTab model.tabs)
+        (List.map (viewTab model) model.tabs)
 
 
-viewTab : String -> Html Msg
-viewTab tab =
-    div [ class "tab" ]
+viewTab : Model -> String -> Html Msg
+viewTab model tab =
+    div
+        [ classList
+            [ ( "tab", True )
+            , ( "tab-selected", model.selected == tab )
+            ]
+        , onClick (SetActive tab)
+        ]
         [ text tab ]
