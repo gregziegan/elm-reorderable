@@ -154,9 +154,6 @@ dropTab { start, tabIndex } end ({ tabs } as model) =
         dx =
             end.x - start.x
 
-        tabWidth =
-            100
-
         offsetFromPrevTab =
             start.x % tabWidth
 
@@ -195,6 +192,14 @@ dropTab { start, tabIndex } end ({ tabs } as model) =
 
 
 -- VIEW
+
+
+tabWidth =
+    100
+
+
+tabHeight =
+    50
 
 
 view : Model -> Html Msg
@@ -241,8 +246,8 @@ viewDraggingTab maybeTabDrag tab =
             div
                 [ class "tab dragging-tab"
                 , style
-                    [ ( "top", px current.y )
-                    , ( "left", px current.x )
+                    [ ( "top", px (current.y - (tabHeight // 2)) )
+                    , ( "left", px (current.x - (tabWidth // 2)) )
                     ]
                 ]
                 [ text tab ]
