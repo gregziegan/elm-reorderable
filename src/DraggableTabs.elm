@@ -91,6 +91,17 @@ setCurrent xy tabDrag =
 
 view : Model -> Html Msg
 view model =
+    div []
+        [ viewTabs model
+        , model.tabDrag
+            `Maybe.andThen` (\{ tabIndex } -> getTabByIndex model.tabs tabIndex)
+            |> Maybe.map viewDraggingTab
+            |> Maybe.withDefault (text "")
+        ]
+
+
+viewTabs : Model -> Html Msg
+viewTabs model =
     div
         [ class "tab-list"
         , draggable "false"
@@ -109,3 +120,18 @@ viewTab model index tab =
         , on "mousedown" <| Json.map (TabDragStart index) Mouse.position
         ]
         [ text tab ]
+
+
+viewDraggingTab : String -> Html Msg
+viewDraggingTab tab =
+    div [ class "tab dragging-tab" ]
+        [ text tab ]
+
+
+
+-- HELPERS
+
+
+getTabByIndex tabs index =
+    List.drop index tabs
+        |> List.head

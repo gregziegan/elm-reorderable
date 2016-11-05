@@ -6,8 +6,13 @@
 
 .tab-list {
   display: flex;
+  user-select: none;
 }
 
 .tab-selected {
   background-color: cyan;
+}
+
+.dragging-tab {
+  background-color: magenta;
 }
