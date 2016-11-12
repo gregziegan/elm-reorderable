@@ -3,6 +3,7 @@
 TODO:
 
 - [x] make tabs draggable
-- [ ] preview of drop zone
+- [x] preview of drop zone
 - [ ] delay drag on mouse down for x seconds
-- [ ] animation
+- [x] animate insert area
+- [x] animate dragging tab

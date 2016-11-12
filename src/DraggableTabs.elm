@@ -6,6 +6,7 @@ import Html.Events exposing (onClick, on)
 import Json.Decode as Json
 import Mouse
 import Animation exposing (px)
+import Color exposing (rgba, rgb)
 
 
 subscriptions : Model -> Sub Msg
@@ -18,7 +19,7 @@ subscriptions model =
             Sub.batch
                 [ Mouse.moves (TabDragging tabDrag)
                 , Mouse.ups (TabDragEnd tabDrag)
-                , Animation.subscription AnimateInsertArea [ model.insertAreaStyle ]
+                , Animation.subscription Animate [ model.insertAreaStyle, model.draggingTabStyle ]
                 ]
 
 
@@ -38,6 +39,7 @@ type alias Model =
     , selected : String
     , tabDrag : Maybe TabDrag
     , insertAreaStyle : Animation.State
+    , draggingTabStyle : Animation.State
     }
 
 
@@ -47,6 +49,7 @@ init =
       , selected = "Tab 1"
       , tabDrag = Nothing
       , insertAreaStyle = initInsertAreaStyle
+      , draggingTabStyle = initDraggingTabStyle
       }
     , Cmd.none
     )
@@ -54,6 +57,18 @@ init =
 
 initInsertAreaStyle =
     Animation.style [ Animation.width (px 0.0) ]
+
+
+initDraggingTabStyle =
+    Animation.style
+        [ Animation.shadow
+            { offsetX = 0
+            , offsetY = 0
+            , blur = 0
+            , size = 0
+            , color = rgba 0 0 0 0.1
+            }
+        ]
 
 
 
@@ -65,7 +80,7 @@ type Msg
     | TabDragStart Int Mouse.Position
     | TabDragging TabDrag Mouse.Position
     | TabDragEnd TabDrag Mouse.Position
-    | AnimateInsertArea Animation.Msg
+    | Animate Animation.Msg
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -83,6 +98,7 @@ pureUpdate msg model =
             model
                 |> startTabDrag tabIndex xy
                 |> growInsertArea
+                |> emphasizeDraggingTab
 
         TabDragging tabDrag xy ->
             { model | tabDrag = Just <| setCurrent xy tabDrag }
@@ -91,11 +107,20 @@ pureUpdate msg model =
             model
                 |> dropTab tabDrag xy
                 |> resetInsertAreaAnimation
+                |> resetDraggingTabAnimation
 
-        AnimateInsertArea animMsg ->
-            { model
-                | insertAreaStyle = Animation.update animMsg model.insertAreaStyle
-            }
+        Animate animMsg ->
+            let
+                insertAreaStyle =
+                    Animation.update animMsg model.insertAreaStyle
+
+                draggingTabStyle =
+                    Animation.update animMsg model.draggingTabStyle
+            in
+                { model
+                    | insertAreaStyle = insertAreaStyle
+                    , draggingTabStyle = draggingTabStyle
+                }
 
 
 setCurrent : Mouse.Position -> TabDrag -> TabDrag
@@ -120,8 +145,31 @@ growInsertArea model =
         { model | insertAreaStyle = newInsertAreaStyle }
 
 
+emphasizeDraggingTab model =
+    let
+        newDraggingTabStyle =
+            Animation.interrupt
+                [ Animation.to
+                    [ Animation.shadow
+                        { offsetX = 10
+                        , offsetY = 10
+                        , blur = 15
+                        , size = 0
+                        , color = rgba 0 0 0 0.1
+                        }
+                    ]
+                ]
+                model.draggingTabStyle
+    in
+        { model | draggingTabStyle = newDraggingTabStyle }
+
+
 resetInsertAreaAnimation model =
     { model | insertAreaStyle = initInsertAreaStyle }
+
+
+resetDraggingTabAnimation model =
+    { model | draggingTabStyle = initDraggingTabStyle }
 
 
 
@@ -247,7 +295,7 @@ view model =
         , model.tabDrag
             `Maybe.andThen` (\{ tabIndex, current } ->
                                 getTabByIndex model.tabs tabIndex
-                                    |> Maybe.map (viewDraggingTab current)
+                                    |> Maybe.map (viewDraggingTab model.draggingTabStyle current)
                             )
             |> Maybe.withDefault (text "")
         ]
@@ -298,19 +346,21 @@ viewTab model index tab =
         [ text tab ]
 
 
-viewDraggingTab : Mouse.Position -> String -> Html Msg
-viewDraggingTab current tab =
+viewDraggingTab : Animation.State -> Mouse.Position -> String -> Html Msg
+viewDraggingTab draggingTabStyle current tab =
     let
         px int =
             (toString int) ++ "px"
     in
         div
-            [ class "tab dragging-tab"
-            , style
-                [ ( "top", px (current.y - (tabHeight // 2)) )
-                , ( "left", px (current.x - (tabWidth // 2)) )
-                ]
-            ]
+            (Animation.render draggingTabStyle
+                ++ [ class "tab dragging-tab"
+                   , style
+                        [ ( "top", px (current.y - (tabHeight // 2)) )
+                        , ( "left", px (current.x - (tabWidth // 2)) )
+                        ]
+                   ]
+            )
             [ text tab ]
 
 
