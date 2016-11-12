@@ -213,13 +213,35 @@ view model =
         ]
 
 
+viewInsertArea =
+    div
+        [ class "insert-area"
+        , style [ ( "width", "20px" ) ]
+        ]
+        []
+
+
 viewTabs : Model -> Html Msg
 viewTabs model =
-    div
-        [ class "tab-list"
-        , draggable "false"
-        ]
-        (List.indexedMap (viewTab model) model.tabs)
+    let
+        draggableTabs =
+            List.indexedMap (viewTab model) model.tabs
+
+        viewDraggableTabsWithInsertArea insertIndex =
+            List.concat
+                [ List.take insertIndex draggableTabs
+                , [ viewInsertArea ]
+                , List.drop insertIndex draggableTabs
+                ]
+    in
+        div
+            [ class "tab-list"
+            , draggable "false"
+            ]
+            (model.tabDrag
+                |> Maybe.map (\{ current } -> viewDraggableTabsWithInsertArea (x // tabWidth))
+                |> Maybe.withDefault draggableTabs
+            )
 
 
 viewTab : Model -> Int -> String -> Html Msg
