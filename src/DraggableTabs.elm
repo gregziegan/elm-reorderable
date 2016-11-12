@@ -5,6 +5,7 @@ import Html.Attributes exposing (class, classList, draggable, style)
 import Html.Events exposing (onClick, on)
 import Json.Decode as Json
 import Mouse
+import Animation exposing (px)
 
 
 subscriptions : Model -> Sub Msg
@@ -17,6 +18,7 @@ subscriptions model =
             Sub.batch
                 [ Mouse.moves (TabDragging tabDrag)
                 , Mouse.ups (TabDragEnd tabDrag)
+                , Animation.subscription AnimateInsertArea [ model.insertAreaStyle ]
                 ]
 
 
@@ -35,6 +37,7 @@ type alias Model =
     { tabs : List String
     , selected : String
     , tabDrag : Maybe TabDrag
+    , insertAreaStyle : Animation.State
     }
 
 
@@ -43,9 +46,14 @@ init =
     ( { tabs = [ "Tab 1", "Tab 2", "Tab 3", "Tab 4", "Tab 5", "Tab 6" ]
       , selected = "Tab 1"
       , tabDrag = Nothing
+      , insertAreaStyle = initInsertAreaStyle
       }
     , Cmd.none
     )
+
+
+initInsertAreaStyle =
+    Animation.style [ Animation.width (px 0.0) ]
 
 
 
@@ -57,6 +65,7 @@ type Msg
     | TabDragStart Int Mouse.Position
     | TabDragging TabDrag Mouse.Position
     | TabDragEnd TabDrag Mouse.Position
+    | AnimateInsertArea Animation.Msg
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -71,7 +80,9 @@ pureUpdate msg model =
             { model | selected = tabId }
 
         TabDragStart tabIndex xy ->
-            { model | tabDrag = Just <| TabDrag xy xy tabIndex }
+            model
+                |> startTabDrag tabIndex xy
+                |> growInsertArea
 
         TabDragging tabDrag xy ->
             { model | tabDrag = Just <| setCurrent xy tabDrag }
@@ -79,11 +90,38 @@ pureUpdate msg model =
         TabDragEnd tabDrag xy ->
             model
                 |> dropTab tabDrag xy
+                |> resetInsertAreaAnimation
+
+        AnimateInsertArea animMsg ->
+            { model
+                | insertAreaStyle = Animation.update animMsg model.insertAreaStyle
+            }
 
 
 setCurrent : Mouse.Position -> TabDrag -> TabDrag
 setCurrent xy tabDrag =
     { tabDrag | current = xy }
+
+
+startTabDrag tabIndex xy model =
+    { model | tabDrag = Just <| TabDrag xy xy tabIndex }
+
+
+growInsertArea model =
+    let
+        newInsertAreaStyle =
+            Animation.interrupt
+                [ Animation.to
+                    [ Animation.width (px (tabWidth))
+                    ]
+                ]
+                model.insertAreaStyle
+    in
+        { model | insertAreaStyle = newInsertAreaStyle }
+
+
+resetInsertAreaAnimation model =
+    { model | insertAreaStyle = initInsertAreaStyle }
 
 
 
@@ -207,20 +245,20 @@ view model =
     div []
         [ viewTabs model
         , model.tabDrag
-            `Maybe.andThen`
-                (\{ tabIndex, current } ->
-                    getTabByIndex model.tabs tabIndex
-                        |> Maybe.map (viewDraggingTab current)
-                )
+            `Maybe.andThen` (\{ tabIndex, current } ->
+                                getTabByIndex model.tabs tabIndex
+                                    |> Maybe.map (viewDraggingTab current)
+                            )
             |> Maybe.withDefault (text "")
         ]
 
 
-viewInsertArea =
+viewInsertArea model =
     div
-        [ class "insert-area"
-        , style [ ( "width", "20px" ) ]
-        ]
+        (Animation.render model.insertAreaStyle
+            ++ [ class "insert-area"
+               ]
+        )
         []
 
 
@@ -233,7 +271,7 @@ viewTabs model =
         viewDraggableTabsWithInsertArea insertIndex =
             List.concat
                 [ List.take insertIndex draggableTabs
-                , [ viewInsertArea ]
+                , [ viewInsertArea model ]
                 , List.drop insertIndex draggableTabs
                 ]
     in
@@ -260,20 +298,20 @@ viewTab model index tab =
         [ text tab ]
 
 
-px int =
-    (toString int) ++ "px"
-
-
 viewDraggingTab : Mouse.Position -> String -> Html Msg
 viewDraggingTab current tab =
-    div
-        [ class "tab dragging-tab"
-        , style
-            [ ( "top", px (current.y - (tabHeight // 2)) )
-            , ( "left", px (current.x - (tabWidth // 2)) )
+    let
+        px int =
+            (toString int) ++ "px"
+    in
+        div
+            [ class "tab dragging-tab"
+            , style
+                [ ( "top", px (current.y - (tabHeight // 2)) )
+                , ( "left", px (current.x - (tabWidth // 2)) )
+                ]
             ]
-        ]
-        [ text tab ]
+            [ text tab ]
 
 
 
