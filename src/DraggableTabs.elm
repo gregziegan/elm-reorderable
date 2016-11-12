@@ -207,8 +207,11 @@ view model =
     div []
         [ viewTabs model
         , model.tabDrag
-            `Maybe.andThen` (\{ tabIndex } -> getTabByIndex model.tabs tabIndex)
-            |> Maybe.map (viewDraggingTab model.tabDrag)
+            `Maybe.andThen`
+                (\{ tabIndex, current } ->
+                    getTabByIndex model.tabs tabIndex
+                        |> Maybe.map (viewDraggingTab current)
+                )
             |> Maybe.withDefault (text "")
         ]
 
@@ -261,21 +264,16 @@ px int =
     (toString int) ++ "px"
 
 
-viewDraggingTab : Maybe TabDrag -> String -> Html Msg
-viewDraggingTab maybeTabDrag tab =
-    case maybeTabDrag of
-        Just { current } ->
-            div
-                [ class "tab dragging-tab"
-                , style
-                    [ ( "top", px (current.y - (tabHeight // 2)) )
-                    , ( "left", px (current.x - (tabWidth // 2)) )
-                    ]
-                ]
-                [ text tab ]
-
-        Nothing ->
-            text ""
+viewDraggingTab : Mouse.Position -> String -> Html Msg
+viewDraggingTab current tab =
+    div
+        [ class "tab dragging-tab"
+        , style
+            [ ( "top", px (current.y - (tabHeight // 2)) )
+            , ( "left", px (current.x - (tabWidth // 2)) )
+            ]
+        ]
+        [ text tab ]
 
 
 
