@@ -239,7 +239,7 @@ viewTabs model =
             , draggable "false"
             ]
             (model.tabDrag
-                |> Maybe.map (\{ current } -> viewDraggableTabsWithInsertArea (x // tabWidth))
+                |> Maybe.map (\{ current } -> viewDraggableTabsWithInsertArea (current.x // tabWidth))
                 |> Maybe.withDefault draggableTabs
             )
 
