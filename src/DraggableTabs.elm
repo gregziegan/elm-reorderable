@@ -2,25 +2,35 @@ module DraggableTabs exposing (..)
 
 import Html exposing (..)
 import Html.Attributes exposing (class, classList, draggable, style)
-import Html.Events exposing (onClick, on)
+import Html.Events exposing (onClick, on, onMouseDown)
 import Json.Decode as Json
 import Mouse
 import Animation exposing (px)
 import Color exposing (rgba, rgb)
+import Time exposing (Time, millisecond, second)
 
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
-    case model.tabDrag of
-        Nothing ->
-            Sub.none
+    List.concat
+        [ [ Time.every (100 * millisecond) Tick
+          , Animation.subscription Animate [ model.insertAreaStyle, model.draggingTabStyle ]
+          ]
+        , tabDragSubscriptions model
+        ]
+        |> Sub.batch
 
-        Just tabDrag ->
-            Sub.batch
-                [ Mouse.moves (TabDragging tabDrag)
-                , Mouse.ups (TabDragEnd tabDrag)
-                , Animation.subscription Animate [ model.insertAreaStyle, model.draggingTabStyle ]
-                ]
+
+tabDragSubscriptions model =
+    let
+        getSubscriptions tabDrag =
+            [ Mouse.moves (TabDragging tabDrag)
+            , Mouse.ups (TabDragEnd tabDrag)
+            ]
+    in
+        (Maybe.map getSubscriptions model.tabDrag
+            |> Maybe.withDefault []
+        )
 
 
 
@@ -40,6 +50,8 @@ type alias Model =
     , tabDrag : Maybe TabDrag
     , insertAreaStyle : Animation.State
     , draggingTabStyle : Animation.State
+    , currentTime : Time
+    , lastTabClick : Time
     }
 
 
@@ -50,6 +62,8 @@ init =
       , tabDrag = Nothing
       , insertAreaStyle = initInsertAreaStyle
       , draggingTabStyle = initDraggingTabStyle
+      , currentTime = 0
+      , lastTabClick = 0
       }
     , Cmd.none
     )
@@ -77,10 +91,12 @@ initDraggingTabStyle =
 
 type Msg
     = SetActive String
+    | TabClick
     | TabDragStart Int Mouse.Position
     | TabDragging TabDrag Mouse.Position
     | TabDragEnd TabDrag Mouse.Position
     | Animate Animation.Msg
+    | Tick Time
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -90,9 +106,16 @@ update msg model =
 
 pureUpdate : Msg -> Model -> Model
 pureUpdate msg model =
-    case Debug.log "msg" msg of
+    case msg of
         SetActive tabId ->
             { model | selected = tabId }
+
+        TabClick ->
+            let
+                tabClick =
+                    Debug.log "tabClicked!" "tabClicked"
+            in
+                { model | lastTabClick = model.currentTime }
 
         TabDragStart tabIndex xy ->
             model
@@ -121,6 +144,9 @@ pureUpdate msg model =
                     | insertAreaStyle = insertAreaStyle
                     , draggingTabStyle = draggingTabStyle
                 }
+
+        Tick time ->
+            { model | currentTime = time }
 
 
 setCurrent : Mouse.Position -> TabDrag -> TabDrag
@@ -170,6 +196,10 @@ resetInsertAreaAnimation model =
 
 resetDraggingTabAnimation model =
     { model | draggingTabStyle = initDraggingTabStyle }
+
+
+trackTabClickTime model =
+    { model | lastTabClick = model.currentTime }
 
 
 
@@ -298,6 +328,8 @@ view model =
                                     |> Maybe.map (viewDraggingTab model.draggingTabStyle current)
                             )
             |> Maybe.withDefault (text "")
+        , p [] [ text <| toString model.currentTime ]
+        , p [] [ text <| toString model.lastTabClick ]
         ]
 
 
@@ -335,15 +367,34 @@ viewTabs model =
 
 viewTab : Model -> Int -> String -> Html Msg
 viewTab model index tab =
-    div
-        [ classList
-            [ ( "tab", True )
-            , ( "tab-selected", model.selected == tab )
+    let
+        tabHasBeenClickedAtLeastOnce =
+            model.lastTabClick > 0
+
+        eitherTabDragOrClick xy =
+            let
+                hasItBeenEnoughTime =
+                    abs (model.lastTabClick - model.currentTime)
+                        > (0.1 * Time.second)
+                        |> Debug.log "hasItBeenEnoughTime"
+            in
+                if tabHasBeenClickedAtLeastOnce && hasItBeenEnoughTime then
+                    Ok (TabDragStart index xy)
+                else
+                    Ok TabClick
+
+        dec =
+            Json.customDecoder Mouse.position eitherTabDragOrClick
+    in
+        div
+            [ classList
+                [ ( "tab", True )
+                , ( "tab-selected", model.selected == tab )
+                ]
+            , onClick (SetActive tab)
+            , on "mousedown" dec
             ]
-        , onClick (SetActive tab)
-        , on "mousedown" <| Json.map (TabDragStart index) Mouse.position
-        ]
-        [ text tab ]
+            [ text tab ]
 
 
 viewDraggingTab : Animation.State -> Mouse.Position -> String -> Html Msg
