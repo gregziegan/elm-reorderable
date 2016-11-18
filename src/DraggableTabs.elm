@@ -6,6 +6,7 @@ import Html.Events exposing (onClick, on)
 import Json.Decode as Json
 import Mouse
 import Animation exposing (px)
+import Animation.Messenger
 import Color exposing (rgba, rgb)
 
 
@@ -17,10 +18,14 @@ subscriptions model =
 
         Just tabDrag ->
             Sub.batch
-                [ Mouse.moves (TabDragging tabDrag)
-                , Mouse.ups (TabDragEnd tabDrag)
-                , Animation.subscription Animate [ model.tabPlaceholderStyle, model.draggingTabStyle ]
-                ]
+                (if tabDrag.isSliding then
+                    [ Animation.subscription AnimateMessenger [ model.draggingTabStyle ] ]
+                 else
+                    [ Mouse.moves (TabDragging tabDrag)
+                    , Mouse.ups (TabDragEnding tabDrag)
+                    , Animation.subscription Animate [ model.tabPlaceholderStyle ]
+                    ]
+                )
 
 
 
@@ -31,6 +36,7 @@ type alias TabDrag =
     { start : Mouse.Position
     , current : Mouse.Position
     , tabIndex : Int
+    , isSliding : Bool
     }
 
 
@@ -39,7 +45,7 @@ type alias Model =
     , selected : String
     , tabDrag : Maybe TabDrag
     , tabPlaceholderStyle : Animation.State
-    , draggingTabStyle : Animation.State
+    , draggingTabStyle : Animation.Messenger.State Msg
     }
 
 
@@ -79,48 +85,75 @@ type Msg
     = SetActive String
     | TabDragStart Int Mouse.Position
     | TabDragging TabDrag Mouse.Position
+    | TabDragEnding TabDrag Mouse.Position
     | TabDragEnd TabDrag Mouse.Position
     | Animate Animation.Msg
+    | AnimateMessenger Animation.Msg
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
-    ( pureUpdate msg model, Cmd.none )
-
-
-pureUpdate : Msg -> Model -> Model
-pureUpdate msg model =
-    case Debug.log "msg" msg of
+    case msg of
         SetActive tabId ->
-            { model | selected = tabId }
+            ( { model | selected = tabId }, Cmd.none )
 
         TabDragStart tabIndex xy ->
-            model
+            ( model
                 |> startTabDrag tabIndex xy
                 |> growTabPlaceholder
                 |> emphasizeDraggingTab
+            , Cmd.none
+            )
 
         TabDragging tabDrag xy ->
-            { model | tabDrag = Just <| setCurrent xy tabDrag }
+            ( { model | tabDrag = Just <| setCurrent xy tabDrag }
+            , Cmd.none
+            )
+
+        TabDragEnding tabDrag xy ->
+            let
+                newTabDrag =
+                    Just <| startTabSlide <| setCurrent xy tabDrag
+            in
+                ( { model | tabDrag = newTabDrag }
+                    |> resetTabPlaceholderAnimation
+                    |> slideDraggingTabAnimation tabDrag
+                , Cmd.none
+                )
 
         TabDragEnd tabDrag xy ->
-            model
+            ( model
                 |> dropTab tabDrag xy
                 |> resetTabPlaceholderAnimation
                 |> resetDraggingTabAnimation
+            , Cmd.none
+            )
 
         Animate animMsg ->
             let
                 tabPlaceholderStyle =
                     Animation.update animMsg model.tabPlaceholderStyle
-
-                draggingTabStyle =
-                    Animation.update animMsg model.draggingTabStyle
             in
-                { model
+                ( { model
                     | tabPlaceholderStyle = tabPlaceholderStyle
-                    , draggingTabStyle = draggingTabStyle
-                }
+                  }
+                , Cmd.none
+                )
+
+        AnimateMessenger animMsg ->
+            let
+                ( draggingTabStyle, cmds ) =
+                    Animation.Messenger.update animMsg model.draggingTabStyle
+            in
+                ( { model
+                    | draggingTabStyle = draggingTabStyle
+                  }
+                , cmds
+                )
+
+
+
+-- |> (a -> a -> b)
 
 
 setCurrent : Mouse.Position -> TabDrag -> TabDrag
@@ -129,7 +162,11 @@ setCurrent xy tabDrag =
 
 
 startTabDrag tabIndex xy model =
-    { model | tabDrag = Just <| TabDrag xy xy tabIndex }
+    { model | tabDrag = Just <| TabDrag xy xy tabIndex False }
+
+
+startTabSlide tabDrag =
+    { tabDrag | isSliding = True }
 
 
 growTabPlaceholder : Model -> Model
@@ -167,6 +204,27 @@ emphasizeDraggingTab model =
 
 resetTabPlaceholderAnimation model =
     { model | tabPlaceholderStyle = initTabPlaceholderStyle }
+
+
+slideDraggingTabAnimation ({ current } as tabDrag) model =
+    let
+        currentLeft =
+            current.x - (tabWidth // 2)
+
+        newTabOffset =
+            (current.x // tabWidth) * tabWidth
+
+        newDraggingTabStyle =
+            Animation.interrupt
+                [ Animation.set
+                    [ Animation.left <| px <| toFloat <| currentLeft ]
+                , Animation.to
+                    [ Animation.left <| px <| toFloat <| newTabOffset ]
+                , Animation.Messenger.send (TabDragEnd tabDrag { current | x = newTabOffset })
+                ]
+                model.draggingTabStyle
+    in
+        { model | draggingTabStyle = newDraggingTabStyle }
 
 
 resetDraggingTabAnimation model =
@@ -268,9 +326,9 @@ view model =
         [ viewTabs model
         , model.tabDrag
             |> Maybe.andThen
-                (\{ tabIndex, current } ->
+                (\({ tabIndex, current } as tabDrag) ->
                     getTabByIndex model.tabs tabIndex
-                        |> Maybe.map (viewDraggingTab model.draggingTabStyle current)
+                        |> Maybe.map (viewDraggingTab model.draggingTabStyle tabDrag)
                 )
             |> Maybe.withDefault (text "")
         ]
@@ -327,21 +385,21 @@ viewTab model index tab =
         [ text tab ]
 
 
-viewDraggingTab : Animation.State -> Mouse.Position -> String -> Html Msg
-viewDraggingTab draggingTabStyle current tab =
+viewDraggingTab : Animation.Messenger.State Msg -> TabDrag -> String -> Html Msg
+viewDraggingTab draggingTabStyle { current, isSliding } tab =
     let
         px int =
             (toString int) ++ "px"
     in
         div
-            (Animation.render draggingTabStyle
-                ++ [ class "tab dragging-tab"
-                   , draggable "false"
-                   , style
-                        [ ( "top", px 0 )
-                        , ( "left", px (current.x - (tabWidth // 2)) )
-                        ]
-                   ]
+            ([ class "tab dragging-tab"
+             , draggable "false"
+             , style
+                [ ( "top", px 0 )
+                , ( "left", px (current.x - (tabWidth // 2)) )
+                ]
+             ]
+                ++ Animation.render draggingTabStyle
             )
             [ text tab ]
 

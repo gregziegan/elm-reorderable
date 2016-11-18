@@ -19,7 +19,7 @@ body {
 }
 
 .dragging-tab {
-  background-color: magenta;
+  background-color: white;
   position: absolute;
   user-select: none;
   cursor: pointer;
