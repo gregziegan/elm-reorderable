@@ -289,9 +289,12 @@ view model =
         [ viewTabs model
         , model.tabDrag
             |> Maybe.andThen
-                (\({ tabIndex, current } as tabDrag) ->
-                    getTabByIndex model.tabs tabIndex
-                        |> Maybe.map (viewDraggingTab model.draggingTabStyle tabDrag)
+                (\({ tabIndex, start, current } as tabDrag) ->
+                    if start.x == current.x then
+                        Nothing
+                    else
+                        getTabByIndex model.tabs tabIndex
+                            |> Maybe.map (viewDraggingTab model.draggingTabStyle tabDrag)
                 )
             |> Maybe.withDefault (text "")
         ]
@@ -330,7 +333,13 @@ viewTabs model =
             , draggable "false"
             ]
             (model.tabDrag
-                |> Maybe.map (\{ current, tabIndex } -> viewDraggableTabsWithTabPlaceholder (current.x // tabWidth) tabIndex)
+                |> Maybe.andThen
+                    (\{ start, current, tabIndex } ->
+                        if start.x == current.x then
+                            Nothing
+                        else
+                            Just <| viewDraggableTabsWithTabPlaceholder (current.x // tabWidth) tabIndex
+                    )
                 |> Maybe.withDefault draggableTabs
             )
 
@@ -342,7 +351,7 @@ viewTab model index tab =
             [ ( "tab", True )
             , ( "tab-selected", model.selected == tab )
             ]
-        , onClick (SetActive tab)
+        , Html.Events.onMouseUp (SetActive tab)
         , on "mousedown" <| Json.map (TabDragStart index) Mouse.position
         ]
         [ text tab ]
@@ -357,6 +366,7 @@ viewDraggingTab draggingTabStyle { current, isSliding } tab =
         div
             ([ class "tab dragging-tab"
              , draggable "false"
+             , Html.Events.onMouseUp (SetActive tab)
              , style
                 [ ( "top", px 0 )
                 , ( "left", px (current.x - (tabWidth // 2)) )

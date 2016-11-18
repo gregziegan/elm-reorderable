@@ -15,7 +15,7 @@ body {
 }
 
 .tab-selected {
-  background-color: white;
+  background-color: cyan;
 }
 
 .dragging-tab {
