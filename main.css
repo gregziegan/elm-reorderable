@@ -30,3 +30,21 @@ body {
   width: 100px;
   background-color: #d8d8d8;
 }
+
+.tab-context-menu {
+  display: none;
+  position: absolute;
+  z-index: 1;
+}
+
+.tab-context-menu--active {
+  display: block;
+}
+
+.tab-context-menu__list {
+  list-style: none;
+}
+
+.tab-context-menu__item {
+  border: 1px solid gray;
+}

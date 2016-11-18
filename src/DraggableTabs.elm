@@ -1,32 +1,34 @@
 module DraggableTabs exposing (..)
 
 import Html exposing (..)
-import Html.Attributes exposing (class, classList, draggable, style)
-import Html.Events exposing (onClick, on)
+import Html.Attributes exposing (id, class, classList, draggable, style, contextmenu)
+import Html.Events exposing (onClick, on, onWithOptions)
 import Json.Decode as Json
 import Mouse
 import Animation exposing (px)
 import Animation.Messenger
-import Color exposing (rgba, rgb)
 import Time exposing (second)
+import Keyboard.Extra
+import Char exposing (KeyCode)
 
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
-    case model.tabDrag of
-        Nothing ->
-            Sub.none
+    Sub.batch <|
+        List.append [ Sub.map KeyboardExtraMsg Keyboard.Extra.subscriptions ] <|
+            case model.tabDrag of
+                Nothing ->
+                    [ Mouse.moves SetMousePosition ]
 
-        Just tabDrag ->
-            Sub.batch
-                (if tabDrag.isSliding then
-                    [ Animation.subscription AnimateMessenger [ model.draggingTabStyle ] ]
-                 else
-                    [ Mouse.moves (TabDragging tabDrag)
-                    , Mouse.ups (TabDragEnding tabDrag)
-                    , Animation.subscription Animate [ model.tabPlaceholderStyle ]
-                    ]
-                )
+                Just tabDrag ->
+                    (if tabDrag.isSliding then
+                        [ Animation.subscription AnimateMessenger [ model.draggingTabStyle ] ]
+                     else
+                        [ Mouse.moves (TabDragging tabDrag)
+                        , Mouse.ups (TabDragEnding tabDrag)
+                        , Animation.subscription Animate [ model.tabPlaceholderStyle ]
+                        ]
+                    )
 
 
 
@@ -47,19 +49,29 @@ type alias Model =
     , tabDrag : Maybe TabDrag
     , tabPlaceholderStyle : Animation.State
     , draggingTabStyle : Animation.Messenger.State Msg
+    , showTabMenu : Bool
+    , mouse : Mouse.Position
+    , keyboardModel : Keyboard.Extra.Model
     }
 
 
 init : ( Model, Cmd Msg )
 init =
-    ( { tabs = [ "Tab 1", "Tab 2", "Tab 3", "Tab 4", "Tab 5", "Tab 6" ]
-      , selected = "Tab 1"
-      , tabDrag = Nothing
-      , tabPlaceholderStyle = initTabPlaceholderStyle
-      , draggingTabStyle = initDraggingTabStyle
-      }
-    , Cmd.none
-    )
+    let
+        ( keyboardModel, keyboardCmd ) =
+            Keyboard.Extra.init
+    in
+        ( { tabs = [ "Tab 1", "Tab 2", "Tab 3", "Tab 4", "Tab 5", "Tab 6" ]
+          , selected = "Tab 1"
+          , tabDrag = Nothing
+          , tabPlaceholderStyle = initTabPlaceholderStyle
+          , draggingTabStyle = initDraggingTabStyle
+          , showTabMenu = False
+          , mouse = { x = 0, y = 0 }
+          , keyboardModel = keyboardModel
+          }
+        , Cmd.map KeyboardExtraMsg keyboardCmd
+        )
 
 
 initTabPlaceholderStyle =
@@ -82,6 +94,9 @@ type Msg
     | TabDragEnd TabDrag Mouse.Position
     | Animate Animation.Msg
     | AnimateMessenger Animation.Msg
+    | ToggleTabMenu Bool
+    | SetMousePosition Mouse.Position
+    | KeyboardExtraMsg Keyboard.Extra.Msg
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -97,18 +112,19 @@ update msg model =
             )
 
         TabDragging tabDrag xy ->
-            ( { model | tabDrag = Just <| setCurrent xy tabDrag }
+            ( { model | tabDrag = Just <| normalizeTabDragMouse model.tabs xy <| setCurrent xy tabDrag }
             , Cmd.none
             )
 
         TabDragEnding tabDrag xy ->
             let
                 newTabDrag =
-                    Just <| startTabSlide <| setCurrent xy tabDrag
+                    Just <| startTabSlide <| normalizeTabDragMouse model.tabs xy <| setCurrent xy tabDrag
             in
                 ( { model | tabDrag = newTabDrag }
                     |> resetTabPlaceholderAnimation
-                    |> slideDraggingTabAnimation tabDrag
+                    |> slideDraggingTabAnimation model.tabs tabDrag
+                    |> setMousePosition xy
                 , Cmd.none
                 )
 
@@ -142,14 +158,72 @@ update msg model =
                 , cmds
                 )
 
+        ToggleTabMenu bool ->
+            ( { model | showTabMenu = not model.showTabMenu }, Cmd.none )
+
+        SetMousePosition xy ->
+            ( model
+                |> setMousePosition xy
+            , Cmd.none
+            )
+
+        KeyboardExtraMsg keyMsg ->
+            let
+                ( keyboardModel, keyboardCmd ) =
+                    Keyboard.Extra.update keyMsg model.keyboardModel
+
+                escapeIsPressed =
+                    Keyboard.Extra.isPressed Keyboard.Extra.Escape keyboardModel
+            in
+                ( { model
+                    | keyboardModel = keyboardModel
+                    , showTabMenu =
+                        if model.showTabMenu && escapeIsPressed then
+                            False
+                        else
+                            model.showTabMenu
+                    , tabDrag =
+                        if model.tabDrag /= Nothing && escapeIsPressed then
+                            Nothing
+                        else
+                            model.tabDrag
+                  }
+                , Cmd.map KeyboardExtraMsg keyboardCmd
+                )
 
 
--- |> (a -> a -> b)
+halfTab =
+    tabWidth // 2
+
+
+allTabsWidth tabs =
+    (tabWidth * List.length tabs)
+
+
+rightMostMouse tabs =
+    allTabsWidth tabs - halfTab
+
+
+normalizeTabDragMouse tabs xy tabDrag =
+    let
+        boundedXy =
+            if xy.x < halfTab then
+                { xy | x = 0 }
+            else if xy.x >= (rightMostMouse tabs) then
+                { xy | x = rightMostMouse tabs }
+            else
+                xy
+    in
+        { tabDrag | current = boundedXy }
 
 
 setCurrent : Mouse.Position -> TabDrag -> TabDrag
 setCurrent xy tabDrag =
     { tabDrag | current = xy }
+
+
+setMousePosition xy model =
+    { model | mouse = xy }
 
 
 startTabDrag tabIndex xy model =
@@ -164,7 +238,7 @@ resetTabPlaceholderAnimation model =
     { model | tabPlaceholderStyle = initTabPlaceholderStyle }
 
 
-slideDraggingTabAnimation ({ current } as tabDrag) model =
+slideDraggingTabAnimation tabs ({ current } as tabDrag) model =
     let
         currentLeft =
             current.x - (tabWidth // 2)
@@ -187,7 +261,10 @@ slideDraggingTabAnimation ({ current } as tabDrag) model =
                 ]
                 model.draggingTabStyle
     in
-        { model | draggingTabStyle = newDraggingTabStyle }
+        if current.x == 0 || current.x > rightMostMouse tabs then
+            model
+        else
+            { model | draggingTabStyle = newDraggingTabStyle }
 
 
 resetDraggingTabAnimation model =
@@ -297,6 +374,7 @@ view model =
                             |> Maybe.map (viewDraggingTab model.draggingTabStyle tabDrag)
                 )
             |> Maybe.withDefault (text "")
+        , viewTabMenu model.mouse model.showTabMenu
         ]
 
 
@@ -344,6 +422,10 @@ viewTabs model =
             )
 
 
+defaultPrevented =
+    Html.Events.Options False True
+
+
 viewTab : Model -> Int -> String -> Html Msg
 viewTab model index tab =
     div
@@ -351,10 +433,35 @@ viewTab model index tab =
             [ ( "tab", True )
             , ( "tab-selected", model.selected == tab )
             ]
+        , contextmenu "tab-menu"
         , Html.Events.onMouseUp (SetActive tab)
+        , onWithOptions "contextmenu" defaultPrevented <| Json.map ToggleTabMenu (Json.succeed True)
         , on "mousedown" <| Json.map (TabDragStart index) Mouse.position
         ]
         [ text tab ]
+
+
+viewTabMenu : Mouse.Position -> Bool -> Html Msg
+viewTabMenu { x, y } showMenu =
+    let
+        px int =
+            (toString int) ++ "px"
+    in
+        nav
+            [ id "tab-menu"
+            , classList
+                [ ( "tab-context-menu", True )
+                , ( "tab-context-menu--active", showMenu )
+                ]
+            , style
+                [ ( "top", px y )
+                , ( "left", px x )
+                ]
+            ]
+            [ ul [ class "tab-context-menu__list" ]
+                [ li [ class "tab-context-menu__item" ] [ text "Pin tab" ]
+                ]
+            ]
 
 
 viewDraggingTab : Animation.Messenger.State Msg -> TabDrag -> String -> Html Msg
@@ -362,6 +469,12 @@ viewDraggingTab draggingTabStyle { current, isSliding } tab =
     let
         px int =
             (toString int) ++ "px"
+
+        left =
+            if current.x < (tabWidth // 2) then
+                px 0
+            else
+                px (current.x - (tabWidth // 2))
     in
         div
             ([ class "tab dragging-tab"
@@ -369,7 +482,7 @@ viewDraggingTab draggingTabStyle { current, isSliding } tab =
              , Html.Events.onMouseUp (SetActive tab)
              , style
                 [ ( "top", px 0 )
-                , ( "left", px (current.x - (tabWidth // 2)) )
+                , ( "left", left )
                 ]
              ]
                 ++ Animation.render draggingTabStyle
