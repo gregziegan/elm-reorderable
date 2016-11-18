@@ -15,7 +15,7 @@ body {
 }
 
 .tab-selected {
-  background-color: cyan;
+  background-color: white;
 }
 
 .dragging-tab {
@@ -23,8 +23,10 @@ body {
   position: absolute;
   user-select: none;
   cursor: pointer;
+  box-shadow: 8px 0 11px -4px rgba(0, 0, 0, 0.1), -8px 0 4px -4px rgba(0, 0, 0, 0.1);
 }
 
 .tab-placeholder {
   width: 100px;
+  background-color: #d8d8d8;
 }

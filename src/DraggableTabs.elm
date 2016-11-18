@@ -8,6 +8,7 @@ import Mouse
 import Animation exposing (px)
 import Animation.Messenger
 import Color exposing (rgba, rgb)
+import Time exposing (second)
 
 
 subscriptions : Model -> Sub Msg
@@ -62,19 +63,11 @@ init =
 
 
 initTabPlaceholderStyle =
-    Animation.style [ Animation.backgroundColor Color.gray ]
+    Animation.style []
 
 
 initDraggingTabStyle =
-    Animation.style
-        [ Animation.shadow
-            { offsetX = 0
-            , offsetY = 0
-            , blur = 0
-            , size = 0
-            , color = rgba 0 0 0 0.1
-            }
-        ]
+    Animation.style []
 
 
 
@@ -100,8 +93,6 @@ update msg model =
         TabDragStart tabIndex xy ->
             ( model
                 |> startTabDrag tabIndex xy
-                |> growTabPlaceholder
-                |> emphasizeDraggingTab
             , Cmd.none
             )
 
@@ -169,39 +160,6 @@ startTabSlide tabDrag =
     { tabDrag | isSliding = True }
 
 
-growTabPlaceholder : Model -> Model
-growTabPlaceholder model =
-    let
-        newTabPlaceholderStyle =
-            Animation.interrupt
-                [ Animation.to
-                    [ Animation.backgroundColor Color.purple
-                    ]
-                ]
-                model.tabPlaceholderStyle
-    in
-        { model | tabPlaceholderStyle = newTabPlaceholderStyle }
-
-
-emphasizeDraggingTab model =
-    let
-        newDraggingTabStyle =
-            Animation.interrupt
-                [ Animation.to
-                    [ Animation.shadow
-                        { offsetX = 10
-                        , offsetY = 10
-                        , blur = 15
-                        , size = 0
-                        , color = rgba 0 0 0 0.1
-                        }
-                    ]
-                ]
-                model.draggingTabStyle
-    in
-        { model | draggingTabStyle = newDraggingTabStyle }
-
-
 resetTabPlaceholderAnimation model =
     { model | tabPlaceholderStyle = initTabPlaceholderStyle }
 
@@ -218,7 +176,12 @@ slideDraggingTabAnimation ({ current } as tabDrag) model =
             Animation.interrupt
                 [ Animation.set
                     [ Animation.left <| px <| toFloat <| currentLeft ]
-                , Animation.to
+                , Animation.toWith
+                    (Animation.easing
+                        { duration = 0.1 * second
+                        , ease = (\x -> x ^ 2)
+                        }
+                    )
                     [ Animation.left <| px <| toFloat <| newTabOffset ]
                 , Animation.Messenger.send (TabDragEnd tabDrag { current | x = newTabOffset })
                 ]
