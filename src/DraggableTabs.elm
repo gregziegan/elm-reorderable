@@ -19,7 +19,7 @@ subscriptions model =
             Sub.batch
                 [ Mouse.moves (TabDragging tabDrag)
                 , Mouse.ups (TabDragEnd tabDrag)
-                , Animation.subscription Animate [ model.insertAreaStyle, model.draggingTabStyle ]
+                , Animation.subscription Animate [ model.tabPlaceholderStyle, model.draggingTabStyle ]
                 ]
 
 
@@ -38,7 +38,7 @@ type alias Model =
     { tabs : List String
     , selected : String
     , tabDrag : Maybe TabDrag
-    , insertAreaStyle : Animation.State
+    , tabPlaceholderStyle : Animation.State
     , draggingTabStyle : Animation.State
     }
 
@@ -48,15 +48,15 @@ init =
     ( { tabs = [ "Tab 1", "Tab 2", "Tab 3", "Tab 4", "Tab 5", "Tab 6" ]
       , selected = "Tab 1"
       , tabDrag = Nothing
-      , insertAreaStyle = initInsertAreaStyle
+      , tabPlaceholderStyle = initTabPlaceholderStyle
       , draggingTabStyle = initDraggingTabStyle
       }
     , Cmd.none
     )
 
 
-initInsertAreaStyle =
-    Animation.style [ Animation.width (px 0.0) ]
+initTabPlaceholderStyle =
+    Animation.style [ Animation.backgroundColor Color.gray ]
 
 
 initDraggingTabStyle =
@@ -97,7 +97,7 @@ pureUpdate msg model =
         TabDragStart tabIndex xy ->
             model
                 |> startTabDrag tabIndex xy
-                |> growInsertArea
+                |> growTabPlaceholder
                 |> emphasizeDraggingTab
 
         TabDragging tabDrag xy ->
@@ -106,19 +106,19 @@ pureUpdate msg model =
         TabDragEnd tabDrag xy ->
             model
                 |> dropTab tabDrag xy
-                |> resetInsertAreaAnimation
+                |> resetTabPlaceholderAnimation
                 |> resetDraggingTabAnimation
 
         Animate animMsg ->
             let
-                insertAreaStyle =
-                    Animation.update animMsg model.insertAreaStyle
+                tabPlaceholderStyle =
+                    Animation.update animMsg model.tabPlaceholderStyle
 
                 draggingTabStyle =
                     Animation.update animMsg model.draggingTabStyle
             in
                 { model
-                    | insertAreaStyle = insertAreaStyle
+                    | tabPlaceholderStyle = tabPlaceholderStyle
                     , draggingTabStyle = draggingTabStyle
                 }
 
@@ -132,17 +132,18 @@ startTabDrag tabIndex xy model =
     { model | tabDrag = Just <| TabDrag xy xy tabIndex }
 
 
-growInsertArea model =
+growTabPlaceholder : Model -> Model
+growTabPlaceholder model =
     let
-        newInsertAreaStyle =
+        newTabPlaceholderStyle =
             Animation.interrupt
                 [ Animation.to
-                    [ Animation.width (px (tabWidth))
+                    [ Animation.backgroundColor Color.purple
                     ]
                 ]
-                model.insertAreaStyle
+                model.tabPlaceholderStyle
     in
-        { model | insertAreaStyle = newInsertAreaStyle }
+        { model | tabPlaceholderStyle = newTabPlaceholderStyle }
 
 
 emphasizeDraggingTab model =
@@ -164,8 +165,8 @@ emphasizeDraggingTab model =
         { model | draggingTabStyle = newDraggingTabStyle }
 
 
-resetInsertAreaAnimation model =
-    { model | insertAreaStyle = initInsertAreaStyle }
+resetTabPlaceholderAnimation model =
+    { model | tabPlaceholderStyle = initTabPlaceholderStyle }
 
 
 resetDraggingTabAnimation model =
@@ -237,38 +238,11 @@ shiftTabs newIndex selectedIndex tabs =
 dropTab : TabDrag -> Mouse.Position -> Model -> Model
 dropTab { start, tabIndex } end ({ tabs } as model) =
     let
-        dx =
-            end.x - start.x
-
-        offsetFromPrevTab =
-            start.x % tabWidth
-
-        distToNextTab =
-            tabWidth - offsetFromPrevTab
-
-        movingLeft =
-            dx > 0
-
-        movingRight =
-            dx < 0
-
-        crossedToPrevTab =
-            dx > offsetFromPrevTab
-
-        crossedToNextTab =
-            abs dx > distToNextTab
-
         newIndex =
             end.x // tabWidth
 
         newTabs =
-            if
-                (movingLeft && crossedToPrevTab)
-                    || (movingRight && crossedToNextTab)
-            then
-                shiftTabs newIndex tabIndex tabs
-            else
-                tabs
+            shiftTabs newIndex tabIndex tabs
     in
         { model
             | tabDrag = Nothing
@@ -293,18 +267,20 @@ view model =
     div []
         [ viewTabs model
         , model.tabDrag
-            `Maybe.andThen` (\{ tabIndex, current } ->
-                                getTabByIndex model.tabs tabIndex
-                                    |> Maybe.map (viewDraggingTab model.draggingTabStyle current)
-                            )
+            |> Maybe.andThen
+                (\{ tabIndex, current } ->
+                    getTabByIndex model.tabs tabIndex
+                        |> Maybe.map (viewDraggingTab model.draggingTabStyle current)
+                )
             |> Maybe.withDefault (text "")
         ]
 
 
-viewInsertArea model =
+viewTabPlaceholder : Model -> Html Msg
+viewTabPlaceholder model =
     div
-        (Animation.render model.insertAreaStyle
-            ++ [ class "insert-area"
+        (Animation.render model.tabPlaceholderStyle
+            ++ [ class "tab-placeholder"
                ]
         )
         []
@@ -316,11 +292,16 @@ viewTabs model =
         draggableTabs =
             List.indexedMap (viewTab model) model.tabs
 
-        viewDraggableTabsWithInsertArea insertIndex =
+        reorderedTabsPreview insertIndex tabIndex =
+            model.tabs
+                |> shiftTabs insertIndex tabIndex
+                |> List.indexedMap (viewTab model)
+
+        viewDraggableTabsWithTabPlaceholder insertIndex tabIndex =
             List.concat
-                [ List.take insertIndex draggableTabs
-                , [ viewInsertArea model ]
-                , List.drop insertIndex draggableTabs
+                [ List.take insertIndex (reorderedTabsPreview insertIndex tabIndex)
+                , [ viewTabPlaceholder model ]
+                , List.drop (insertIndex + 1) (reorderedTabsPreview insertIndex tabIndex)
                 ]
     in
         div
@@ -328,7 +309,7 @@ viewTabs model =
             , draggable "false"
             ]
             (model.tabDrag
-                |> Maybe.map (\{ current } -> viewDraggableTabsWithInsertArea (current.x // tabWidth))
+                |> Maybe.map (\{ current, tabIndex } -> viewDraggableTabsWithTabPlaceholder (current.x // tabWidth) tabIndex)
                 |> Maybe.withDefault draggableTabs
             )
 
@@ -355,8 +336,9 @@ viewDraggingTab draggingTabStyle current tab =
         div
             (Animation.render draggingTabStyle
                 ++ [ class "tab dragging-tab"
+                   , draggable "false"
                    , style
-                        [ ( "top", px (current.y - (tabHeight // 2)) )
+                        [ ( "top", px 0 )
                         , ( "left", px (current.x - (tabWidth // 2)) )
                         ]
                    ]

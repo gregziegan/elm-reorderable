@@ -1,7 +1,6 @@
 module Main exposing (..)
 
 import Html
-import Html.App as Html
 import DraggableTabs exposing (init, update, view, subscriptions)
 
 

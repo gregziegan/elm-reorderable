@@ -6,6 +6,7 @@ body {
   width: 100px;
   height: 50px;
   border: 1px solid gray;
+  cursor: pointer;
 }
 
 .tab-list {
@@ -20,4 +21,10 @@ body {
 .dragging-tab {
   background-color: magenta;
   position: absolute;
+  user-select: none;
+  cursor: pointer;
+}
+
+.tab-placeholder {
+  width: 100px;
 }
