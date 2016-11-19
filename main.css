@@ -31,10 +31,24 @@ body {
   background-color: #d8d8d8;
 }
 
+.tab-context-menu__backdrop {
+  display: none;
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100vw;
+  height: 100vh;
+}
+
+.tab-context-menu__backdrop--active {
+  display: block;
+}
+
 .tab-context-menu {
   display: none;
   position: absolute;
   z-index: 1;
+  background-color: white;
 }
 
 .tab-context-menu--active {
@@ -42,9 +56,18 @@ body {
 }
 
 .tab-context-menu__list {
+  margin: 0;
+  padding: 0;
   list-style: none;
+  display: flex;
+  flex-direction: column;
+  border: 1px solid gray;
 }
 
 .tab-context-menu__item {
-  border: 1px solid gray;
+  padding: 2px;
+}
+
+.tab-context-menu__item--active {
+  background-color: cyan;
 }

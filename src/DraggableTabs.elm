@@ -2,7 +2,7 @@ module DraggableTabs exposing (..)
 
 import Html exposing (..)
 import Html.Attributes exposing (id, class, classList, draggable, style, contextmenu)
-import Html.Events exposing (onClick, on, onWithOptions)
+import Html.Events exposing (onClick, onMouseDown, onMouseEnter, on, onWithOptions)
 import Json.Decode as Json
 import Mouse
 import Animation exposing (px)
@@ -18,7 +18,7 @@ subscriptions model =
         List.append [ Sub.map KeyboardExtraMsg Keyboard.Extra.subscriptions ] <|
             case model.tabDrag of
                 Nothing ->
-                    [ Mouse.moves SetMousePosition ]
+                    []
 
                 Just tabDrag ->
                     (if tabDrag.isSliding then
@@ -50,9 +50,36 @@ type alias Model =
     , tabPlaceholderStyle : Animation.State
     , draggingTabStyle : Animation.Messenger.State Msg
     , showTabMenu : Bool
-    , mouse : Mouse.Position
     , keyboardModel : Keyboard.Extra.Model
+    , activeTabMenuItem : TabMenuItem
+    , tabMenuPos : Mouse.Position
     }
+
+
+type TabMenuItem
+    = Reload
+    | Duplicate
+    | PinTab
+    | CloseTab
+
+
+tabMenuItemToString menuItem =
+    case menuItem of
+        Reload ->
+            "Reload"
+
+        Duplicate ->
+            "Duplicate"
+
+        PinTab ->
+            "Pin Tab"
+
+        CloseTab ->
+            "Close Tab"
+
+
+tabMenuItems =
+    [ Reload, Duplicate, PinTab, CloseTab ]
 
 
 init : ( Model, Cmd Msg )
@@ -67,8 +94,9 @@ init =
           , tabPlaceholderStyle = initTabPlaceholderStyle
           , draggingTabStyle = initDraggingTabStyle
           , showTabMenu = False
-          , mouse = { x = 0, y = 0 }
           , keyboardModel = keyboardModel
+          , activeTabMenuItem = Reload
+          , tabMenuPos = { x = 0, y = 0 }
           }
         , Cmd.map KeyboardExtraMsg keyboardCmd
         )
@@ -94,8 +122,9 @@ type Msg
     | TabDragEnd TabDrag Mouse.Position
     | Animate Animation.Msg
     | AnimateMessenger Animation.Msg
-    | ToggleTabMenu Bool
-    | SetMousePosition Mouse.Position
+    | ToggleTabMenu Mouse.Position
+    | CloseTabMenu
+    | SetActiveTabMenuItem TabMenuItem
     | KeyboardExtraMsg Keyboard.Extra.Msg
 
 
@@ -124,7 +153,6 @@ update msg model =
                 ( { model | tabDrag = newTabDrag }
                     |> resetTabPlaceholderAnimation
                     |> slideDraggingTabAnimation model.tabs tabDrag
-                    |> setMousePosition xy
                 , Cmd.none
                 )
 
@@ -158,14 +186,14 @@ update msg model =
                 , cmds
                 )
 
-        ToggleTabMenu bool ->
-            ( { model | showTabMenu = not model.showTabMenu }, Cmd.none )
+        ToggleTabMenu xy ->
+            ( { model | showTabMenu = not model.showTabMenu, tabMenuPos = xy }, Cmd.none )
 
-        SetMousePosition xy ->
-            ( model
-                |> setMousePosition xy
-            , Cmd.none
-            )
+        CloseTabMenu ->
+            ( { model | showTabMenu = False }, Cmd.none )
+
+        SetActiveTabMenuItem menuItem ->
+            ( { model | activeTabMenuItem = menuItem }, Cmd.none )
 
         KeyboardExtraMsg keyMsg ->
             let
@@ -220,10 +248,6 @@ normalizeTabDragMouse tabs xy tabDrag =
 setCurrent : Mouse.Position -> TabDrag -> TabDrag
 setCurrent xy tabDrag =
     { tabDrag | current = xy }
-
-
-setMousePosition xy model =
-    { model | mouse = xy }
 
 
 startTabDrag tabIndex xy model =
@@ -374,7 +398,7 @@ view model =
                             |> Maybe.map (viewDraggingTab model.draggingTabStyle tabDrag)
                 )
             |> Maybe.withDefault (text "")
-        , viewTabMenu model.mouse model.showTabMenu
+        , viewTabMenu model
         ]
 
 
@@ -435,33 +459,54 @@ viewTab model index tab =
             ]
         , contextmenu "tab-menu"
         , Html.Events.onMouseUp (SetActive tab)
-        , onWithOptions "contextmenu" defaultPrevented <| Json.map ToggleTabMenu (Json.succeed True)
+        , onWithOptions "contextmenu" defaultPrevented <| Json.map ToggleTabMenu Mouse.position
         , on "mousedown" <| Json.map (TabDragStart index) Mouse.position
         ]
         [ text tab ]
 
 
-viewTabMenu : Mouse.Position -> Bool -> Html Msg
-viewTabMenu { x, y } showMenu =
+viewTabMenu : Model -> Html Msg
+viewTabMenu { activeTabMenuItem, tabMenuPos, showTabMenu } =
     let
         px int =
             (toString int) ++ "px"
     in
-        nav
-            [ id "tab-menu"
-            , classList
-                [ ( "tab-context-menu", True )
-                , ( "tab-context-menu--active", showMenu )
+        div
+            [ classList
+                [ ( "tab-context-menu__backdrop", True )
+                , ( "tab-context-menu__backdrop--active", showTabMenu )
                 ]
-            , style
-                [ ( "top", px y )
-                , ( "left", px x )
+            , onMouseDown CloseTabMenu
+            , onWithOptions "contextmenu" defaultPrevented <| Json.map (\_ -> CloseTabMenu) (Json.succeed "contextClick")
+            ]
+            [ nav
+                [ id "tab-menu"
+                , onWithOptions "contextmenu" defaultPrevented <| Json.map ToggleTabMenu Mouse.position
+                , classList
+                    [ ( "tab-context-menu", True )
+                    , ( "tab-context-menu--active", showTabMenu )
+                    ]
+                , style
+                    [ ( "top", px tabMenuPos.y )
+                    , ( "left", px tabMenuPos.x )
+                    ]
+                ]
+                [ ul [ class "tab-context-menu__list" ]
+                    (List.map (viewTabMenuItem activeTabMenuItem) tabMenuItems)
                 ]
             ]
-            [ ul [ class "tab-context-menu__list" ]
-                [ li [ class "tab-context-menu__item" ] [ text "Pin tab" ]
-                ]
+
+
+viewTabMenuItem : TabMenuItem -> TabMenuItem -> Html Msg
+viewTabMenuItem activeMenuItem menuItem =
+    li
+        [ classList
+            [ ( "tab-context-menu__item", True )
+            , ( "tab-context-menu__item--active", activeMenuItem == menuItem )
             ]
+        , onMouseEnter (SetActiveTabMenuItem menuItem)
+        ]
+        [ text <| tabMenuItemToString menuItem ]
 
 
 viewDraggingTab : Animation.Messenger.State Msg -> TabDrag -> String -> Html Msg
