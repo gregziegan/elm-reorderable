@@ -155,9 +155,12 @@ update msg model =
         TabDragEnding tabDrag xy ->
             let
                 newTabDrag =
-                    Just <| startTabSlide <| normalizeTabDragMouse model xy <| setCurrent xy tabDrag
+                    startTabSlide <| normalizeTabDragMouse model xy <| setCurrent xy tabDrag
+
+                newModel =
+                    { model | tabDrag = Just newTabDrag }
             in
-                ( { model | tabDrag = newTabDrag }
+                ( newModel
                     |> resetTabPlaceholderAnimation
                     |> slideDraggingTabAnimation (allTabs model) tabDrag
                 , Cmd.none
@@ -268,7 +271,7 @@ normalizeTabDragMouse { pinnedTabs, tabs } xy tabDrag =
             rightMostMouse tabDrag.isPinned pinnedTabs tabs
 
         boundedXy =
-            if xy.x < (calcTabWidth tabDrag.isPinned) then
+            if xy.x < (calcTabWidth tabDrag.isPinned) // 2 then
                 { xy | x = 0 }
             else if xy.x >= rightMostX then
                 { xy | x = rightMostX }
@@ -301,7 +304,7 @@ slideDraggingTabAnimation tabs ({ current, isPinned } as tabDrag) model =
             calcTabWidth isPinned
 
         currentLeft =
-            current.x - (dragTabWidth // 2)
+            max 0 (current.x - (dragTabWidth // 2))
 
         numPinned =
             List.length model.pinnedTabs
@@ -333,10 +336,7 @@ slideDraggingTabAnimation tabs ({ current, isPinned } as tabDrag) model =
                 ]
                 model.draggingTabStyle
     in
-        if current.x == 0 || current.x > rightMostMouse isPinned model.pinnedTabs tabs then
-            model
-        else
-            { model | draggingTabStyle = newDraggingTabStyle }
+        { model | draggingTabStyle = newDraggingTabStyle }
 
 
 resetDraggingTabAnimation model =
