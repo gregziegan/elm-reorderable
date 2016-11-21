@@ -63,7 +63,6 @@ type alias Model =
 
 type TabMenuItem
     = Reload Int
-    | Duplicate Int
     | PinTab Int
     | CloseTab Int
 
@@ -73,9 +72,6 @@ tabMenuItemToString menuItem =
         Reload _ ->
             "Reload"
 
-        Duplicate _ ->
-            "Duplicate"
-
         PinTab _ ->
             "Pin Tab"
 
@@ -84,7 +80,7 @@ tabMenuItemToString menuItem =
 
 
 tabMenuItems tabIndex =
-    [ Reload tabIndex, Duplicate tabIndex, PinTab tabIndex, CloseTab tabIndex ]
+    [ Reload tabIndex, PinTab tabIndex, CloseTab tabIndex ]
 
 
 init : ( Model, Cmd Msg )
@@ -93,8 +89,8 @@ init =
         ( keyboardModel, keyboardCmd ) =
             Keyboard.Extra.init
     in
-        ( { tabs = [ "Tab 4", "Tab 5", "Tab 6" ]
-          , pinnedTabs = [ "Tab 1", "Tab 2", "Tab 3" ]
+        ( { tabs = [ "Tab 1", "Tab 2", "Tab 3", "Tab 4", "Tab 5", "Tab 6" ]
+          , pinnedTabs = []
           , selected = "Tab 1"
           , tabDrag = Nothing
           , tabPlaceholderStyle = initTabPlaceholderStyle
@@ -136,6 +132,7 @@ type Msg
     | CloseTabMenu
     | KeyboardExtraMsg Keyboard.Extra.Msg
     | PinTabAtIndex Int
+    | CloseTabAtIndex Int
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -250,6 +247,19 @@ update msg model =
                   }
                 , Cmd.none
                 )
+
+        CloseTabAtIndex tabIndex ->
+            let
+                removeTab tabs =
+                    List.take tabIndex tabs ++ List.drop (tabIndex + 1) tabs
+
+                newModel =
+                    if tabIndex < List.length model.pinnedTabs then
+                        { model | pinnedTabs = removeTab model.pinnedTabs }
+                    else
+                        { model | tabs = removeTab model.tabs }
+            in
+                ( newModel, Cmd.none )
 
 
 normalizeTabDragMouse { pinnedTabs, tabs } xy tabDrag =
@@ -561,6 +571,9 @@ viewTabMenuItem menuItem =
             case menuItem of
                 PinTab tabIndex ->
                     [ onMouseDown (PinTabAtIndex tabIndex) ]
+
+                CloseTab tabIndex ->
+                    [ onMouseDown (CloseTabAtIndex tabIndex) ]
 
                 _ ->
                     []
