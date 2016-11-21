@@ -116,6 +116,15 @@ initTabMenu tabIndex xy =
     }
 
 
+initTabDrag start tabIndex isPinned =
+    { start = start
+    , current = start
+    , tabIndex = tabIndex
+    , isSliding = False
+    , isPinned = isPinned
+    }
+
+
 
 -- UPDATE
 
@@ -131,7 +140,8 @@ type Msg
     | ToggleTabMenu Int Mouse.Position
     | CloseTabMenu
     | KeyboardExtraMsg Keyboard.Extra.Msg
-    | PinTabAtIndex Int
+    | PinTabAtIndex Int Mouse.Position
+    | FinishPinningTab TabDrag Mouse.Position
     | CloseTabAtIndex Int
 
 
@@ -236,10 +246,24 @@ update msg model =
                 , Cmd.map KeyboardExtraMsg keyboardCmd
                 )
 
-        PinTabAtIndex tabIndex ->
+        PinTabAtIndex tabIndex xy ->
+            let
+                tabDrag =
+                    initTabDrag xy tabIndex False
+
+                readyToSlideModel =
+                    { model | tabDrag = Just tabDrag }
+                        |> resetDraggingTabAnimation
+            in
+                ( readyToSlideModel
+                    |> slidePinningTabAnimation (allTabs readyToSlideModel) tabDrag
+                , Cmd.none
+                )
+
+        FinishPinningTab { tabIndex } xy ->
             let
                 unpinnedIndex =
-                    tabIndex - (List.length model.pinnedTabs)
+                    tabIndex - List.length model.pinnedTabs
             in
                 ( { model
                     | tabs = List.take unpinnedIndex model.tabs ++ List.drop (unpinnedIndex + 1) model.tabs
@@ -287,7 +311,7 @@ setCurrent xy tabDrag =
 
 
 startTabDrag tabIndex isPinned xy model =
-    { model | tabDrag = Just <| TabDrag xy xy tabIndex isPinned False }
+    { model | tabDrag = Just <| initTabDrag xy tabIndex isPinned }
 
 
 startTabSlide tabDrag =
@@ -298,6 +322,48 @@ resetTabPlaceholderAnimation model =
     { model | tabPlaceholderStyle = initTabPlaceholderStyle }
 
 
+slidePinningTabAnimation tabs ({ current, isPinned } as tabDrag) model =
+    let
+        dragTabWidth =
+            calcTabWidth isPinned
+
+        currentLeft =
+            max 0 (current.x - (dragTabWidth // 2))
+
+        numPinned =
+            List.length model.pinnedTabs
+
+        numTabs =
+            List.length model.tabs
+
+        insertPos =
+            calcInsertPos current.x numPinned numTabs
+
+        insertIndex =
+            newTabIndex isPinned insertPos numPinned
+
+        newTabOffset =
+            ((clamp 0 numPinned insertIndex) * pinnedTabWidth) + ((clamp 0 numTabs (insertIndex - numPinned)) * tabWidth)
+
+        newDraggingTabStyle =
+            Animation.interrupt
+                [ Animation.set
+                    [ Animation.left <| px <| toFloat <| currentLeft ]
+                , Animation.toWith
+                    (Animation.easing
+                        { duration = 0.1 * second
+                        , ease = (\x -> x ^ 1.5)
+                        }
+                    )
+                    [ Animation.left <| px <| toFloat <| newTabOffset ]
+                , Animation.Messenger.send (FinishPinningTab tabDrag { current | x = newTabOffset })
+                ]
+                model.draggingTabStyle
+    in
+        { model | draggingTabStyle = newDraggingTabStyle }
+
+
+slideDraggingTabAnimation : List String -> TabDrag -> Model -> Model
 slideDraggingTabAnimation tabs ({ current, isPinned } as tabDrag) model =
     let
         dragTabWidth =
@@ -559,18 +625,18 @@ viewTabMenu { tabIndex, position } =
                     ]
                 ]
                 [ ul [ class "tab-context-menu__list" ]
-                    (List.map viewTabMenuItem (tabMenuItems tabIndex))
+                    (List.map (viewTabMenuItem position) (tabMenuItems tabIndex))
                 ]
             ]
 
 
-viewTabMenuItem : TabMenuItem -> Html Msg
-viewTabMenuItem menuItem =
+viewTabMenuItem : Mouse.Position -> TabMenuItem -> Html Msg
+viewTabMenuItem pos menuItem =
     let
         menuItemBehaviors =
             case menuItem of
                 PinTab tabIndex ->
-                    [ onMouseDown (PinTabAtIndex tabIndex) ]
+                    [ onMouseDown (PinTabAtIndex tabIndex pos) ]
 
                 CloseTab tabIndex ->
                     [ onMouseDown (CloseTabAtIndex tabIndex) ]
