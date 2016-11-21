@@ -10,7 +10,7 @@ body {
 }
 
 .tab--pinned {
-  background-color: yellow;
+  background-color: purple;
 }
 
 .tab-list {
@@ -18,7 +18,7 @@ body {
   user-select: none;
 }
 
-.tab-selected {
+.tab--selected {
   background-color: cyan;
 }
 

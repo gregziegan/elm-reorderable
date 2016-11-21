@@ -132,119 +132,106 @@ type Msg
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
-    let
-        allTabs =
-            model.pinnedTabs ++ model.tabs
-    in
-        case msg of
-            SetActive tabId ->
-                ( { model | selected = tabId }, Cmd.none )
+    case msg of
+        SetActive tabId ->
+            ( { model | selected = tabId }, Cmd.none )
 
-            TabDragStart tabIndex isPinned xy ->
-                ( model
-                    |> startTabDrag tabIndex isPinned xy
-                , Cmd.none
-                )
+        TabDragStart tabIndex isPinned xy ->
+            ( model
+                |> startTabDrag tabIndex isPinned xy
+            , Cmd.none
+            )
 
-            TabDragging tabDrag xy ->
-                ( { model | tabDrag = Just <| normalizeTabDragMouse allTabs xy <| setCurrent xy tabDrag }
-                , Cmd.none
-                )
+        TabDragging tabDrag xy ->
+            ( { model | tabDrag = Just <| normalizeTabDragMouse model xy <| setCurrent xy tabDrag }
+            , Cmd.none
+            )
 
-            TabDragEnding tabDrag xy ->
-                let
-                    newTabDrag =
-                        Just <| startTabSlide <| normalizeTabDragMouse allTabs xy <| setCurrent xy tabDrag
-                in
-                    ( { model | tabDrag = newTabDrag }
-                        |> resetTabPlaceholderAnimation
-                        |> slideDraggingTabAnimation allTabs tabDrag
-                    , Cmd.none
-                    )
-
-            TabDragEnd tabDrag xy ->
-                ( model
-                    |> dropTab tabDrag xy
+        TabDragEnding tabDrag xy ->
+            let
+                newTabDrag =
+                    Just <| startTabSlide <| normalizeTabDragMouse model xy <| setCurrent xy tabDrag
+            in
+                ( { model | tabDrag = newTabDrag }
                     |> resetTabPlaceholderAnimation
-                    |> resetDraggingTabAnimation
+                    |> slideDraggingTabAnimation (allTabs model) tabDrag
                 , Cmd.none
                 )
 
-            Animate animMsg ->
-                let
-                    tabPlaceholderStyle =
-                        Animation.update animMsg model.tabPlaceholderStyle
-                in
-                    ( { model
-                        | tabPlaceholderStyle = tabPlaceholderStyle
-                      }
-                    , Cmd.none
-                    )
+        TabDragEnd tabDrag xy ->
+            ( model
+                |> dropTab tabDrag xy
+                |> resetTabPlaceholderAnimation
+                |> resetDraggingTabAnimation
+            , Cmd.none
+            )
 
-            AnimateMessenger animMsg ->
-                let
-                    ( draggingTabStyle, cmds ) =
-                        Animation.Messenger.update animMsg model.draggingTabStyle
-                in
-                    ( { model
-                        | draggingTabStyle = draggingTabStyle
-                      }
-                    , cmds
-                    )
+        Animate animMsg ->
+            let
+                tabPlaceholderStyle =
+                    Animation.update animMsg model.tabPlaceholderStyle
+            in
+                ( { model
+                    | tabPlaceholderStyle = tabPlaceholderStyle
+                  }
+                , Cmd.none
+                )
 
-            ToggleTabMenu xy ->
-                ( { model | showTabMenu = not model.showTabMenu, tabMenuPos = xy }, Cmd.none )
+        AnimateMessenger animMsg ->
+            let
+                ( draggingTabStyle, cmds ) =
+                    Animation.Messenger.update animMsg model.draggingTabStyle
+            in
+                ( { model
+                    | draggingTabStyle = draggingTabStyle
+                  }
+                , cmds
+                )
 
-            CloseTabMenu ->
-                ( { model | showTabMenu = False }, Cmd.none )
+        ToggleTabMenu xy ->
+            ( { model | showTabMenu = not model.showTabMenu, tabMenuPos = xy }, Cmd.none )
 
-            SetActiveTabMenuItem menuItem ->
-                ( { model | activeTabMenuItem = menuItem }, Cmd.none )
+        CloseTabMenu ->
+            ( { model | showTabMenu = False }, Cmd.none )
 
-            KeyboardExtraMsg keyMsg ->
-                let
-                    ( keyboardModel, keyboardCmd ) =
-                        Keyboard.Extra.update keyMsg model.keyboardModel
+        SetActiveTabMenuItem menuItem ->
+            ( { model | activeTabMenuItem = menuItem }, Cmd.none )
 
-                    escapeIsPressed =
-                        Keyboard.Extra.isPressed Keyboard.Extra.Escape keyboardModel
-                in
-                    ( { model
-                        | keyboardModel = keyboardModel
-                        , showTabMenu =
-                            if model.showTabMenu && escapeIsPressed then
-                                False
-                            else
-                                model.showTabMenu
-                        , tabDrag =
-                            if model.tabDrag /= Nothing && escapeIsPressed then
-                                Nothing
-                            else
-                                model.tabDrag
-                      }
-                    , Cmd.map KeyboardExtraMsg keyboardCmd
-                    )
+        KeyboardExtraMsg keyMsg ->
+            let
+                ( keyboardModel, keyboardCmd ) =
+                    Keyboard.Extra.update keyMsg model.keyboardModel
 
-
-halfTab =
-    tabWidth // 2
-
-
-allTabsWidth tabs =
-    (tabWidth * List.length tabs)
-
-
-rightMostMouse tabs =
-    allTabsWidth tabs - halfTab
+                escapeIsPressed =
+                    Keyboard.Extra.isPressed Keyboard.Extra.Escape keyboardModel
+            in
+                ( { model
+                    | keyboardModel = keyboardModel
+                    , showTabMenu =
+                        if model.showTabMenu && escapeIsPressed then
+                            False
+                        else
+                            model.showTabMenu
+                    , tabDrag =
+                        if model.tabDrag /= Nothing && escapeIsPressed then
+                            Nothing
+                        else
+                            model.tabDrag
+                  }
+                , Cmd.map KeyboardExtraMsg keyboardCmd
+                )
 
 
-normalizeTabDragMouse tabs xy tabDrag =
+normalizeTabDragMouse { pinnedTabs, tabs } xy tabDrag =
     let
+        rightMostX =
+            rightMostMouse pinnedTabs tabs
+
         boundedXy =
             if xy.x < halfTab then
                 { xy | x = 0 }
-            else if xy.x >= (rightMostMouse tabs) then
-                { xy | x = rightMostMouse tabs }
+            else if xy.x >= rightMostX then
+                { xy | x = rightMostX }
             else
                 xy
     in
@@ -297,7 +284,7 @@ slideDraggingTabAnimation tabs ({ current, isPinned } as tabDrag) model =
                 ]
                 model.draggingTabStyle
     in
-        if current.x == 0 || current.x > rightMostMouse tabs then
+        if current.x == 0 || current.x > rightMostMouse model.pinnedTabs tabs then
             model
         else
             { model | draggingTabStyle = newDraggingTabStyle }
@@ -372,9 +359,6 @@ shiftTabs newIndex selectedIndex tabs =
 dropTab : TabDrag -> Mouse.Position -> Model -> Model
 dropTab { start, tabIndex, isPinned } end model =
     let
-        allTabs =
-            model.pinnedTabs ++ model.tabs
-
         numPinned =
             List.length model.pinnedTabs
 
@@ -385,7 +369,7 @@ dropTab { start, tabIndex, isPinned } end model =
             newTabIndex isPinned insertPos numPinned
 
         newTabs =
-            Debug.log "shifted" <| shiftTabs newIndex tabIndex allTabs
+            Debug.log "shifted" <| shiftTabs newIndex tabIndex (allTabs model)
     in
         { model
             | tabDrag = Nothing
@@ -398,34 +382,22 @@ dropTab { start, tabIndex, isPinned } end model =
 -- VIEW
 
 
-tabWidth =
-    100
-
-
-tabHeight =
-    50
-
-
 view : Model -> Html Msg
 view model =
-    let
-        allTabs =
-            model.pinnedTabs ++ model.tabs
-    in
-        div []
-            [ viewTabs model
-            , model.tabDrag
-                |> Maybe.andThen
-                    (\({ tabIndex, start, current } as tabDrag) ->
-                        if start.x == current.x then
-                            Nothing
-                        else
-                            getTabByIndex allTabs tabIndex
-                                |> Maybe.map (viewDraggingTab model.draggingTabStyle tabDrag)
-                    )
-                |> Maybe.withDefault (text "")
-            , viewTabMenu model
-            ]
+    div []
+        [ viewTabs model
+        , model.tabDrag
+            |> Maybe.andThen
+                (\({ tabIndex, start, current } as tabDrag) ->
+                    if start.x == current.x then
+                        Nothing
+                    else
+                        getTabByIndex (allTabs model) tabIndex
+                            |> Maybe.map (viewDraggingTab model.draggingTabStyle tabDrag)
+                )
+            |> Maybe.withDefault (text "")
+        , viewTabMenu model
+        ]
 
 
 viewTabPlaceholder : Model -> Html Msg
@@ -441,14 +413,11 @@ viewTabPlaceholder model =
 viewTabs : Model -> Html Msg
 viewTabs model =
     let
-        allTabs =
-            model.pinnedTabs ++ model.tabs
-
         draggableTabs =
-            List.indexedMap (viewTab model) allTabs
+            List.indexedMap (viewTab model) (allTabs model)
 
         reorderedTabsPreview insertIndex tabIndex =
-            allTabs
+            allTabs model
                 |> shiftTabs insertIndex tabIndex
                 |> List.indexedMap (viewTab model)
 
@@ -488,8 +457,8 @@ viewTab model index tab =
         div
             [ classList
                 [ ( "tab", True )
-                , ( "tab-selected", model.selected == tab )
-                , ( "tab--pinned", isPinned )
+                , ( "tab--selected", model.selected == tab )
+                , ( "tab--pinned", Debug.log "ispinne" isPinned )
                 ]
             , contextmenu "tab-menu"
             , Html.Events.onMouseUp (SetActive tab)
@@ -578,8 +547,39 @@ getTabByIndex tabs index =
         |> List.head
 
 
+allTabs model =
+    model.pinnedTabs ++ model.tabs
+
+
 newTabIndex isPinned insertPos numPinned =
     if isPinned && insertPos > (numPinned - 1) then
         (numPinned - 1)
     else
         insertPos
+
+
+
+-- CONSTANTS
+
+
+tabWidth =
+    100
+
+
+pinnedTabWidth =
+    50
+
+
+halfTab =
+    tabWidth // 2
+
+
+allTabsWidth pinnedTabs tabs =
+    (pinnedTabWidth * List.length pinnedTabs) + (tabWidth * List.length tabs)
+
+
+rightMostMouse pinnedTabs tabs =
+    if List.length tabs == 0 then
+        (allTabsWidth pinnedTabs tabs) - halfTab
+    else
+        allTabsWidth pinnedTabs tabs - (pinnedTabWidth // 2)
