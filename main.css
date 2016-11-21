@@ -10,7 +10,7 @@ body {
 }
 
 .tab--pinned {
-  background-color: purple;
+  width: 50px;
 }
 
 .tab-list {
@@ -31,7 +31,6 @@ body {
 }
 
 .tab-placeholder {
-  width: 100px;
   background-color: #d8d8d8;
 }
 

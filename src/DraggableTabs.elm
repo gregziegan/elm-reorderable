@@ -89,8 +89,8 @@ init =
         ( keyboardModel, keyboardCmd ) =
             Keyboard.Extra.init
     in
-        ( { tabs = [ "Tab 3", "Tab 4", "Tab 5", "Tab 6" ]
-          , pinnedTabs = [ "Tab 1", "Tab 2" ]
+        ( { tabs = [ "Tab 4", "Tab 5", "Tab 6" ]
+          , pinnedTabs = [ "Tab 1", "Tab 2", "Tab 3" ]
           , selected = "Tab 1"
           , tabDrag = Nothing
           , tabPlaceholderStyle = initTabPlaceholderStyle
@@ -225,10 +225,10 @@ update msg model =
 normalizeTabDragMouse { pinnedTabs, tabs } xy tabDrag =
     let
         rightMostX =
-            rightMostMouse pinnedTabs tabs
+            rightMostMouse tabDrag.isPinned pinnedTabs tabs
 
         boundedXy =
-            if xy.x < halfTab then
+            if xy.x < (calcTabWidth tabDrag.isPinned) then
                 { xy | x = 0 }
             else if xy.x >= rightMostX then
                 { xy | x = rightMostX }
@@ -257,17 +257,26 @@ resetTabPlaceholderAnimation model =
 
 slideDraggingTabAnimation tabs ({ current, isPinned } as tabDrag) model =
     let
+        dragTabWidth =
+            calcTabWidth isPinned
+
         currentLeft =
-            current.x - (tabWidth // 2)
+            current.x - (dragTabWidth // 2)
 
         numPinned =
             List.length model.pinnedTabs
 
+        numTabs =
+            List.length model.tabs
+
         insertPos =
-            current.x // tabWidth
+            calcInsertPos current.x numPinned numTabs
+
+        insertIndex =
+            newTabIndex isPinned insertPos numPinned
 
         newTabOffset =
-            (newTabIndex isPinned insertPos numPinned) * tabWidth
+            ((clamp 0 numPinned insertIndex) * pinnedTabWidth) + ((clamp 0 numTabs (insertIndex - numPinned)) * tabWidth)
 
         newDraggingTabStyle =
             Animation.interrupt
@@ -284,7 +293,7 @@ slideDraggingTabAnimation tabs ({ current, isPinned } as tabDrag) model =
                 ]
                 model.draggingTabStyle
     in
-        if current.x == 0 || current.x > rightMostMouse model.pinnedTabs tabs then
+        if current.x == 0 || current.x > rightMostMouse isPinned model.pinnedTabs tabs then
             model
         else
             { model | draggingTabStyle = newDraggingTabStyle }
@@ -357,19 +366,22 @@ shiftTabs newIndex selectedIndex tabs =
 
 
 dropTab : TabDrag -> Mouse.Position -> Model -> Model
-dropTab { start, tabIndex, isPinned } end model =
+dropTab { start, current, tabIndex, isPinned } end model =
     let
         numPinned =
             List.length model.pinnedTabs
 
+        numTabs =
+            List.length model.tabs
+
         insertPos =
-            end.x // tabWidth
+            calcInsertPos current.x numPinned numTabs
 
         newIndex =
             newTabIndex isPinned insertPos numPinned
 
         newTabs =
-            Debug.log "shifted" <| shiftTabs newIndex tabIndex (allTabs model)
+            shiftTabs newIndex tabIndex (allTabs model)
     in
         { model
             | tabDrag = Nothing
@@ -402,17 +414,33 @@ view model =
 
 viewTabPlaceholder : Model -> Html Msg
 viewTabPlaceholder model =
-    div
-        (Animation.render model.tabPlaceholderStyle
-            ++ [ class "tab-placeholder"
-               ]
-        )
-        []
+    let
+        px int =
+            (toString int) ++ "px"
+
+        isPinned =
+            model.tabDrag
+                |> Maybe.map .isPinned
+                |> Maybe.withDefault False
+    in
+        div
+            (Animation.render model.tabPlaceholderStyle
+                ++ [ class "tab-placeholder"
+                   , style [ ( "width", px <| calcTabWidth isPinned ) ]
+                   ]
+            )
+            []
 
 
 viewTabs : Model -> Html Msg
 viewTabs model =
     let
+        numPinned =
+            List.length model.pinnedTabs
+
+        insertPos current =
+            calcInsertPos current.x numPinned (List.length model.tabs)
+
         draggableTabs =
             List.indexedMap (viewTab model) (allTabs model)
 
@@ -438,7 +466,7 @@ viewTabs model =
                         if start.x == current.x then
                             Nothing
                         else
-                            Just <| viewDraggableTabsWithTabPlaceholder (current.x // tabWidth) tabIndex
+                            Just <| viewDraggableTabsWithTabPlaceholder (insertPos current) tabIndex
                     )
                 |> Maybe.withDefault draggableTabs
             )
@@ -452,13 +480,13 @@ viewTab : Model -> Int -> String -> Html Msg
 viewTab model index tab =
     let
         isPinned =
-            index < List.length model.pinnedTabs
+            List.any ((==) tab) model.pinnedTabs
     in
         div
             [ classList
                 [ ( "tab", True )
                 , ( "tab--selected", model.selected == tab )
-                , ( "tab--pinned", Debug.log "ispinne" isPinned )
+                , ( "tab--pinned", isPinned )
                 ]
             , contextmenu "tab-menu"
             , Html.Events.onMouseUp (SetActive tab)
@@ -513,19 +541,23 @@ viewTabMenuItem activeMenuItem menuItem =
 
 
 viewDraggingTab : Animation.Messenger.State Msg -> TabDrag -> String -> Html Msg
-viewDraggingTab draggingTabStyle { current, isSliding } tab =
+viewDraggingTab draggingTabStyle { current, isSliding, isPinned } tab =
     let
         px int =
             (toString int) ++ "px"
 
         left =
-            if current.x < (tabWidth // 2) then
+            if current.x < (calcTabWidth isPinned // 2) then
                 px 0
             else
-                px (current.x - (tabWidth // 2))
+                px (current.x - (calcTabWidth isPinned // 2))
     in
         div
-            ([ class "tab dragging-tab"
+            ([ classList
+                [ ( "tab", True )
+                , ( "dragging-tab", True )
+                , ( "tab--pinned", isPinned )
+                ]
              , draggable "false"
              , Html.Events.onMouseUp (SetActive tab)
              , style
@@ -554,8 +586,36 @@ allTabs model =
 newTabIndex isPinned insertPos numPinned =
     if isPinned && insertPos > (numPinned - 1) then
         (numPinned - 1)
+    else if not isPinned && insertPos < numPinned then
+        numPinned
     else
         insertPos
+
+
+
+-- 600 // 50 = 12, cap at 2, 2
+-- 600 // 100 = 6, cap at 4, 4
+--
+-- 150 // 50 = 3, cap at 2, 2
+-- 150 // 100 = 1, cap at 4, 1
+--
+-- 100 // 50 = 2, cap at 3, 2
+-- 100 - (2 * 50) // 100 = 0, cap at 3, 0
+
+
+calcInsertPos : Int -> Int -> Int -> Int
+calcInsertPos xPos numPinned numTabs =
+    let
+        posFromPinned =
+            pinnedTabWidth * numPinned
+
+        pinnedTabIndex =
+            clamp 0 numPinned ((xPos // pinnedTabWidth))
+
+        tabIndex =
+            clamp 0 numTabs (((xPos - posFromPinned) // tabWidth))
+    in
+        pinnedTabIndex + tabIndex
 
 
 
@@ -578,8 +638,15 @@ allTabsWidth pinnedTabs tabs =
     (pinnedTabWidth * List.length pinnedTabs) + (tabWidth * List.length tabs)
 
 
-rightMostMouse pinnedTabs tabs =
-    if List.length tabs == 0 then
-        (allTabsWidth pinnedTabs tabs) - halfTab
+calcTabWidth isPinned =
+    if isPinned then
+        pinnedTabWidth
     else
+        tabWidth
+
+
+rightMostMouse isPinned pinnedTabs tabs =
+    if isPinned then
         allTabsWidth pinnedTabs tabs - (pinnedTabWidth // 2)
+    else
+        (allTabsWidth pinnedTabs tabs) - halfTab
