@@ -35,7 +35,6 @@ body {
 }
 
 .tab-context-menu__backdrop {
-  display: none;
   position: absolute;
   left: 0;
   top: 0;
@@ -43,19 +42,10 @@ body {
   height: 100vh;
 }
 
-.tab-context-menu__backdrop--active {
-  display: block;
-}
-
 .tab-context-menu {
-  display: none;
   position: absolute;
   z-index: 1;
   background-color: white;
-}
-
-.tab-context-menu--active {
-  display: block;
 }
 
 .tab-context-menu__list {
@@ -71,6 +61,6 @@ body {
   padding: 2px;
 }
 
-.tab-context-menu__item--active {
+.tab-context-menu__item:hover {
   background-color: cyan;
 }

@@ -43,6 +43,12 @@ type alias TabDrag =
     }
 
 
+type alias TabMenu =
+    { tabIndex : Int
+    , position : Mouse.Position
+    }
+
+
 type alias Model =
     { tabs : List String
     , pinnedTabs : List String
@@ -50,37 +56,35 @@ type alias Model =
     , tabDrag : Maybe TabDrag
     , tabPlaceholderStyle : Animation.State
     , draggingTabStyle : Animation.Messenger.State Msg
-    , showTabMenu : Bool
+    , tabMenu : Maybe TabMenu
     , keyboardModel : Keyboard.Extra.Model
-    , activeTabMenuItem : TabMenuItem
-    , tabMenuPos : Mouse.Position
     }
 
 
 type TabMenuItem
-    = Reload
-    | Duplicate
-    | PinTab
-    | CloseTab
+    = Reload Int
+    | Duplicate Int
+    | PinTab Int
+    | CloseTab Int
 
 
 tabMenuItemToString menuItem =
     case menuItem of
-        Reload ->
+        Reload _ ->
             "Reload"
 
-        Duplicate ->
+        Duplicate _ ->
             "Duplicate"
 
-        PinTab ->
+        PinTab _ ->
             "Pin Tab"
 
-        CloseTab ->
+        CloseTab _ ->
             "Close Tab"
 
 
-tabMenuItems =
-    [ Reload, Duplicate, PinTab, CloseTab ]
+tabMenuItems tabIndex =
+    [ Reload tabIndex, Duplicate tabIndex, PinTab tabIndex, CloseTab tabIndex ]
 
 
 init : ( Model, Cmd Msg )
@@ -95,10 +99,8 @@ init =
           , tabDrag = Nothing
           , tabPlaceholderStyle = initTabPlaceholderStyle
           , draggingTabStyle = initDraggingTabStyle
-          , showTabMenu = False
+          , tabMenu = Nothing
           , keyboardModel = keyboardModel
-          , activeTabMenuItem = Reload
-          , tabMenuPos = { x = 0, y = 0 }
           }
         , Cmd.map KeyboardExtraMsg keyboardCmd
         )
@@ -110,6 +112,12 @@ initTabPlaceholderStyle =
 
 initDraggingTabStyle =
     Animation.style []
+
+
+initTabMenu tabIndex xy =
+    { tabIndex = tabIndex
+    , position = xy
+    }
 
 
 
@@ -124,10 +132,10 @@ type Msg
     | TabDragEnd TabDrag Mouse.Position
     | Animate Animation.Msg
     | AnimateMessenger Animation.Msg
-    | ToggleTabMenu Mouse.Position
+    | ToggleTabMenu Int Mouse.Position
     | CloseTabMenu
-    | SetActiveTabMenuItem TabMenuItem
     | KeyboardExtraMsg Keyboard.Extra.Msg
+    | PinTabAtIndex Int
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -188,14 +196,21 @@ update msg model =
                 , cmds
                 )
 
-        ToggleTabMenu xy ->
-            ( { model | showTabMenu = not model.showTabMenu, tabMenuPos = xy }, Cmd.none )
+        ToggleTabMenu tabIndex xy ->
+            ( { model
+                | tabMenu =
+                    case model.tabMenu of
+                        Just tabMenu ->
+                            Nothing
+
+                        Nothing ->
+                            Just <| initTabMenu tabIndex xy
+              }
+            , Cmd.none
+            )
 
         CloseTabMenu ->
-            ( { model | showTabMenu = False }, Cmd.none )
-
-        SetActiveTabMenuItem menuItem ->
-            ( { model | activeTabMenuItem = menuItem }, Cmd.none )
+            ( { model | tabMenu = Nothing }, Cmd.none )
 
         KeyboardExtraMsg keyMsg ->
             let
@@ -207,11 +222,11 @@ update msg model =
             in
                 ( { model
                     | keyboardModel = keyboardModel
-                    , showTabMenu =
-                        if model.showTabMenu && escapeIsPressed then
-                            False
+                    , tabMenu =
+                        if model.tabMenu /= Nothing && escapeIsPressed then
+                            Nothing
                         else
-                            model.showTabMenu
+                            model.tabMenu
                     , tabDrag =
                         if model.tabDrag /= Nothing && escapeIsPressed then
                             Nothing
@@ -219,6 +234,21 @@ update msg model =
                             model.tabDrag
                   }
                 , Cmd.map KeyboardExtraMsg keyboardCmd
+                )
+
+        PinTabAtIndex tabIndex ->
+            let
+                unpinnedIndex =
+                    tabIndex - (List.length model.pinnedTabs)
+            in
+                ( { model
+                    | tabs = List.take unpinnedIndex model.tabs ++ List.drop (unpinnedIndex + 1) model.tabs
+                    , pinnedTabs =
+                        getTabByIndex (allTabs model) tabIndex
+                            |> Maybe.map (\tab -> model.pinnedTabs ++ [ tab ])
+                            |> Maybe.withDefault model.tabs
+                  }
+                , Cmd.none
                 )
 
 
@@ -408,7 +438,9 @@ view model =
                             |> Maybe.map (viewDraggingTab model.draggingTabStyle tabDrag)
                 )
             |> Maybe.withDefault (text "")
-        , viewTabMenu model
+        , model.tabMenu
+            |> Maybe.map viewTabMenu
+            |> Maybe.withDefault (text "")
         ]
 
 
@@ -490,54 +522,54 @@ viewTab model index tab =
                 ]
             , contextmenu "tab-menu"
             , Html.Events.onMouseUp (SetActive tab)
-            , onWithOptions "contextmenu" defaultPrevented <| Json.map ToggleTabMenu Mouse.position
+            , onWithOptions "contextmenu" defaultPrevented <| Json.map (ToggleTabMenu index) Mouse.position
             , on "mousedown" <| Json.map (TabDragStart index isPinned) Mouse.position
             ]
             [ text tab ]
 
 
-viewTabMenu : Model -> Html Msg
-viewTabMenu { activeTabMenuItem, tabMenuPos, showTabMenu } =
+viewTabMenu : TabMenu -> Html Msg
+viewTabMenu { tabIndex, position } =
     let
         px int =
             (toString int) ++ "px"
     in
         div
-            [ classList
-                [ ( "tab-context-menu__backdrop", True )
-                , ( "tab-context-menu__backdrop--active", showTabMenu )
-                ]
+            [ class "tab-context-menu__backdrop"
             , onMouseDown CloseTabMenu
             , onWithOptions "contextmenu" defaultPrevented <| Json.map (\_ -> CloseTabMenu) (Json.succeed "contextClick")
             ]
             [ nav
                 [ id "tab-menu"
-                , onWithOptions "contextmenu" defaultPrevented <| Json.map ToggleTabMenu Mouse.position
-                , classList
-                    [ ( "tab-context-menu", True )
-                    , ( "tab-context-menu--active", showTabMenu )
-                    ]
+                , onWithOptions "contextmenu" defaultPrevented <| Json.map (ToggleTabMenu tabIndex) Mouse.position
+                , class "tab-context-menu"
                 , style
-                    [ ( "top", px tabMenuPos.y )
-                    , ( "left", px tabMenuPos.x )
+                    [ ( "top", px position.y )
+                    , ( "left", px position.x )
                     ]
                 ]
                 [ ul [ class "tab-context-menu__list" ]
-                    (List.map (viewTabMenuItem activeTabMenuItem) tabMenuItems)
+                    (List.map viewTabMenuItem (tabMenuItems tabIndex))
                 ]
             ]
 
 
-viewTabMenuItem : TabMenuItem -> TabMenuItem -> Html Msg
-viewTabMenuItem activeMenuItem menuItem =
-    li
-        [ classList
-            [ ( "tab-context-menu__item", True )
-            , ( "tab-context-menu__item--active", activeMenuItem == menuItem )
-            ]
-        , onMouseEnter (SetActiveTabMenuItem menuItem)
-        ]
-        [ text <| tabMenuItemToString menuItem ]
+viewTabMenuItem : TabMenuItem -> Html Msg
+viewTabMenuItem menuItem =
+    let
+        menuItemBehaviors =
+            case menuItem of
+                PinTab tabIndex ->
+                    [ onMouseDown (PinTabAtIndex tabIndex) ]
+
+                _ ->
+                    []
+    in
+        li
+            ([ class "tab-context-menu__item" ]
+                ++ menuItemBehaviors
+            )
+            [ text <| tabMenuItemToString menuItem ]
 
 
 viewDraggingTab : Animation.Messenger.State Msg -> TabDrag -> String -> Html Msg
