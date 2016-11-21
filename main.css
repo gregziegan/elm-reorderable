@@ -9,6 +9,10 @@ body {
   cursor: pointer;
 }
 
+.tab--pinned {
+  background-color: yellow;
+}
+
 .tab-list {
   display: flex;
   user-select: none;
