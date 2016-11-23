@@ -23,6 +23,7 @@ body {
 }
 
 .dragging-tab {
+  top: 0;
   background-color: white;
   position: absolute;
   user-select: none;
