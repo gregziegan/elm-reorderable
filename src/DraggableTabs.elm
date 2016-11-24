@@ -2,7 +2,7 @@ module DraggableTabs exposing (..)
 
 import Html exposing (..)
 import Html.Attributes exposing (id, class, classList, draggable, style, contextmenu)
-import Html.Events exposing (onClick, onMouseDown, onMouseUp, onMouseEnter, on, onWithOptions)
+import Html.Events exposing (Options, onClick, onMouseDown, onMouseUp, onMouseEnter, on, onWithOptions)
 import Json.Decode as Json
 import Mouse
 import Animation exposing (px)
@@ -71,6 +71,7 @@ type MovingTab
 type alias TabMenu =
     { tabIndex : Int
     , position : Mouse.Position
+    , isPinned : Bool
     }
 
 
@@ -88,9 +89,11 @@ type alias Model =
 type TabMenuItem
     = Reload Int
     | PinTab Int
+    | UnpinTab Int
     | CloseTab Int
 
 
+tabMenuItemToString : TabMenuItem -> String
 tabMenuItemToString menuItem =
     case menuItem of
         Reload _ ->
@@ -99,12 +102,22 @@ tabMenuItemToString menuItem =
         PinTab _ ->
             "Pin Tab"
 
+        UnpinTab _ ->
+            "Unpin Tab"
+
         CloseTab _ ->
             "Close Tab"
 
 
-tabMenuItems tabIndex =
-    [ Reload tabIndex, PinTab tabIndex, CloseTab tabIndex ]
+tabMenuItems : Bool -> Int -> List TabMenuItem
+tabMenuItems isPinned tabIndex =
+    [ Reload tabIndex
+    , if isPinned then
+        UnpinTab tabIndex
+      else
+        PinTab tabIndex
+    , CloseTab tabIndex
+    ]
 
 
 init : ( Model, Cmd Msg )
@@ -117,7 +130,7 @@ init =
           , pinnedTabs = []
           , selected = "Tab 1"
           , movingTab = Nothing
-          , movingTabStyle = initDraggingTabStyle
+          , movingTabStyle = Animation.style []
           , tabMenu = Nothing
           , keyboardModel = keyboardModel
           }
@@ -125,20 +138,15 @@ init =
         )
 
 
-initTabPlaceholderStyle =
-    Animation.style []
-
-
-initDraggingTabStyle =
-    Animation.style []
-
-
-initTabMenu tabIndex xy =
+initTabMenu : Int -> Mouse.Position -> Bool -> TabMenu
+initTabMenu tabIndex xy isPinned =
     { tabIndex = tabIndex
     , position = xy
+    , isPinned = isPinned
     }
 
 
+initDraggingTab : Mouse.Position -> Int -> Bool -> DraggingTab
 initDraggingTab start tabIndex isPinned =
     { start = start
     , current = start
@@ -147,6 +155,7 @@ initDraggingTab start tabIndex isPinned =
     }
 
 
+initSlidingTab : Mouse.Position -> Int -> Bool -> SlidingTab
 initSlidingTab start tabIndex isPinned =
     { start = start
     , tabIndex = tabIndex
@@ -154,6 +163,7 @@ initSlidingTab start tabIndex isPinned =
     }
 
 
+initPinningTab : Mouse.Position -> Int -> PinningTab
 initPinningTab start tabIndex =
     { start = start
     , tabIndex = tabIndex
@@ -171,11 +181,13 @@ type Msg
     | DraggingTabEnding DraggingTab Mouse.Position
     | DraggingTabEnd SlidingTab Mouse.Position
     | AnimateMessenger Animation.Msg
-    | ToggleTabMenu Int Mouse.Position
+    | ToggleTabMenu Int Bool Mouse.Position
     | CloseTabMenu
     | KeyboardExtraMsg Keyboard.Extra.Msg
     | PinTabAtIndex Int Mouse.Position
-    | FinishPinningTab PinningTab Mouse.Position
+    | UnpinTabAtIndex Int Mouse.Position
+    | FinishPinningTab PinningTab
+    | FinishUnpinningTab PinningTab
     | CloseTabAtIndex Int
 
 
@@ -227,7 +239,7 @@ update msg model =
                 , cmds
                 )
 
-        ToggleTabMenu tabIndex xy ->
+        ToggleTabMenu tabIndex isPinned xy ->
             ( { model
                 | tabMenu =
                     case model.tabMenu of
@@ -235,7 +247,7 @@ update msg model =
                             Nothing
 
                         Nothing ->
-                            Just <| initTabMenu tabIndex xy
+                            Just <| initTabMenu tabIndex xy isPinned
               }
             , Cmd.none
             )
@@ -277,31 +289,35 @@ update msg model =
                         |> resetDraggingTabAnimation
             in
                 ( readyToSlideModel
-                    |> slidePinningTabAnimation (allTabs readyToSlideModel) pinningTab
+                    |> pinTabAnimation (allTabs readyToSlideModel) pinningTab
                 , Cmd.none
                 )
 
-        FinishPinningTab { tabIndex } xy ->
+        UnpinTabAtIndex tabIndex xy ->
             let
-                unpinnedIndex =
-                    tabIndex - List.length model.pinnedTabs
+                pinningTab =
+                    initPinningTab xy tabIndex
 
-                newTabs =
-                    List.take unpinnedIndex model.tabs ++ List.drop (unpinnedIndex + 1) model.tabs
-
-                newPinnedTabs =
-                    getTabByIndex model.tabs unpinnedIndex
-                        |> Maybe.map (\tab -> model.pinnedTabs ++ [ tab ])
-                        |> Maybe.withDefault model.tabs
+                readyToSlideModel =
+                    { model | movingTab = Just <| Pinning pinningTab }
+                        |> resetDraggingTabAnimation
             in
-                ( { model
-                    | tabs = newTabs
-                    , pinnedTabs = newPinnedTabs
-                    , movingTab = Nothing
-                    , movingTabStyle = Animation.style []
-                  }
+                ( readyToSlideModel
+                    |> unpinTabAnimation (allTabs readyToSlideModel) pinningTab
                 , Cmd.none
                 )
+
+        FinishPinningTab { tabIndex } ->
+            ( model
+                |> pinTab tabIndex
+            , Cmd.none
+            )
+
+        FinishUnpinningTab { tabIndex } ->
+            ( model
+                |> unpinTab tabIndex
+            , Cmd.none
+            )
 
         CloseTabAtIndex tabIndex ->
             let
@@ -321,7 +337,7 @@ boundDraggingTabMouse : Model -> Mouse.Position -> DraggingTab -> DraggingTab
 boundDraggingTabMouse { pinnedTabs, tabs } xy draggingTab =
     let
         rightMostX =
-            rightMostMouse draggingTab.isPinned pinnedTabs tabs
+            rightMostMouseX draggingTab.isPinned pinnedTabs tabs
 
         boundedXy =
             if xy.x < (calcTabWidth draggingTab.isPinned) // 2 then
@@ -344,8 +360,52 @@ startDraggingTab tabIndex isPinned xy model =
     { model | movingTab = Just <| Dragging <| initDraggingTab xy tabIndex isPinned }
 
 
-slidePinningTabAnimation : List String -> PinningTab -> Model -> Model
-slidePinningTabAnimation tabs ({ tabIndex, start } as pinningTab) model =
+pinTab : Int -> Model -> Model
+pinTab tabIndex model =
+    let
+        unpinnedIndex =
+            tabIndex - List.length model.pinnedTabs
+
+        newTabs =
+            List.take unpinnedIndex model.tabs ++ List.drop (unpinnedIndex + 1) model.tabs
+
+        newPinnedTabs =
+            List.drop unpinnedIndex model.tabs
+                |> List.head
+                |> Debug.log "tab"
+                |> Maybe.map (\tab -> model.pinnedTabs ++ [ tab ])
+                |> Maybe.withDefault model.tabs
+    in
+        { model
+            | tabs = newTabs
+            , pinnedTabs = newPinnedTabs
+            , movingTab = Nothing
+            , movingTabStyle = Animation.style []
+        }
+
+
+unpinTab : Int -> Model -> Model
+unpinTab tabIndex model =
+    let
+        newTabs =
+            List.drop tabIndex model.pinnedTabs
+                |> List.head
+                |> Maybe.map (\tab -> tab :: model.tabs)
+                |> Maybe.withDefault model.tabs
+
+        newPinnedTabs =
+            List.take tabIndex model.pinnedTabs ++ List.drop (tabIndex + 1) model.pinnedTabs
+    in
+        { model
+            | tabs = newTabs
+            , pinnedTabs = newPinnedTabs
+            , movingTab = Nothing
+            , movingTabStyle = Animation.style []
+        }
+
+
+pinTabAnimation : List String -> PinningTab -> Model -> Model
+pinTabAnimation tabs ({ tabIndex, start } as pinningTab) model =
     let
         numPinned =
             List.length model.pinnedTabs
@@ -353,14 +413,17 @@ slidePinningTabAnimation tabs ({ tabIndex, start } as pinningTab) model =
         numTabs =
             List.length model.tabs
 
-        startTabOffset =
-            newTabOffset + ((clamp 0 numTabs (insertIndex - numPinned)) * tabWidth)
-
         insertIndex =
             numPinned
 
         newTabOffset =
             insertIndex * pinnedTabWidth
+
+        offsetFromPinned =
+            start.x - newTabOffset
+
+        startTabOffset =
+            start.x - (offsetFromPinned % tabWidth)
 
         newMovingTabStyle =
             Animation.interrupt
@@ -377,7 +440,47 @@ slidePinningTabAnimation tabs ({ tabIndex, start } as pinningTab) model =
                     [ Animation.left <| px <| toFloat <| newTabOffset
                     , Animation.width <| px pinnedTabWidth
                     ]
-                , Animation.Messenger.send (FinishPinningTab pinningTab { start | x = newTabOffset })
+                , Animation.Messenger.send (FinishPinningTab pinningTab)
+                ]
+                model.movingTabStyle
+    in
+        { model | movingTabStyle = newMovingTabStyle }
+
+
+unpinTabAnimation : List String -> PinningTab -> Model -> Model
+unpinTabAnimation tab ({ start, tabIndex } as pinningTab) model =
+    let
+        numPinned =
+            List.length model.pinnedTabs
+
+        numTabs =
+            List.length model.tabs
+
+        newTabOffset =
+            numPinned * pinnedTabWidth
+
+        offsetFromPinned =
+            start.x - newTabOffset
+
+        startTabOffset =
+            start.x - (start.x % pinnedTabWidth)
+
+        newMovingTabStyle =
+            Animation.interrupt
+                [ Animation.set
+                    [ Animation.left <| px <| toFloat startTabOffset
+                    , Animation.width <| px pinnedTabWidth
+                    ]
+                , Animation.toWith
+                    (Animation.easing
+                        { duration = 0.1 * second
+                        , ease = (\x -> x ^ 1.5)
+                        }
+                    )
+                    [ Animation.left <| px <| toFloat <| newTabOffset
+                    , Animation.width <| px tabWidth
+                    ]
+                , Animation.Messenger.send (FinishUnpinningTab pinningTab)
                 ]
                 model.movingTabStyle
     in
@@ -429,8 +532,9 @@ slidingTabAnimation tabs ({ start, isPinned, tabIndex } as slidingTab) model =
         }
 
 
+resetDraggingTabAnimation : Model -> Model
 resetDraggingTabAnimation model =
-    { model | movingTabStyle = initDraggingTabStyle }
+    { model | movingTabStyle = Animation.style [] }
 
 
 
@@ -529,20 +633,23 @@ view model =
     let
         maybeViewMovingTab movingTab =
             case movingTab of
-                Dragging draggingTab ->
-                    if draggingTab.current.x == draggingTab.start.x then
+                Dragging ({ start, current, tabIndex } as tab) ->
+                    if current.x == start.x then
                         Nothing
                     else
-                        getTabByIndex (allTabs model) draggingTab.tabIndex
-                            |> Maybe.map (viewDraggingTab model.movingTabStyle draggingTab)
+                        List.drop tabIndex (allTabs model)
+                            |> List.head
+                            |> Maybe.map (viewDraggingTab model.movingTabStyle tab)
 
-                Sliding slidingTab ->
-                    getTabByIndex (allTabs model) slidingTab.tabIndex
-                        |> Maybe.map (viewSlidingTab model.movingTabStyle slidingTab)
+                Sliding tab ->
+                    List.drop tab.tabIndex (allTabs model)
+                        |> List.head
+                        |> Maybe.map (viewSlidingTab model.movingTabStyle tab)
 
-                Pinning pinningTab ->
-                    getTabByIndex (allTabs model) pinningTab.tabIndex
-                        |> Maybe.map (viewPinningTab model.movingTabStyle pinningTab)
+                Pinning tab ->
+                    List.drop tab.tabIndex (allTabs model)
+                        |> List.head
+                        |> Maybe.map (viewPinningTab model.movingTabStyle tab)
     in
         div []
             [ viewTabs model
@@ -632,6 +739,7 @@ viewTabs model =
             )
 
 
+defaultPrevented : Options
 defaultPrevented =
     Html.Events.Options False True
 
@@ -650,14 +758,14 @@ viewTab model index tab =
                 ]
             , contextmenu "tab-menu"
             , onMouseUp (SetActive tab)
-            , onWithOptions "contextmenu" defaultPrevented <| Json.map (ToggleTabMenu index) Mouse.position
+            , onWithOptions "contextmenu" defaultPrevented <| Json.map (ToggleTabMenu index isPinned) Mouse.position
             , on "mousedown" <| Json.map (DraggingTabStart index isPinned) Mouse.position
             ]
             [ text tab ]
 
 
 viewTabMenu : TabMenu -> Html Msg
-viewTabMenu { tabIndex, position } =
+viewTabMenu { tabIndex, position, isPinned } =
     let
         px int =
             (toString int) ++ "px"
@@ -669,7 +777,7 @@ viewTabMenu { tabIndex, position } =
             ]
             [ nav
                 [ id "tab-menu"
-                , onWithOptions "contextmenu" defaultPrevented <| Json.map (ToggleTabMenu tabIndex) Mouse.position
+                , onWithOptions "contextmenu" defaultPrevented <| Json.map (ToggleTabMenu tabIndex isPinned) Mouse.position
                 , class "tab-context-menu"
                 , style
                     [ ( "top", px position.y )
@@ -677,7 +785,7 @@ viewTabMenu { tabIndex, position } =
                     ]
                 ]
                 [ ul [ class "tab-context-menu__list" ]
-                    (List.map (viewTabMenuItem position) (tabMenuItems tabIndex))
+                    (List.map (viewTabMenuItem position) (tabMenuItems isPinned tabIndex))
                 ]
             ]
 
@@ -689,6 +797,9 @@ viewTabMenuItem pos menuItem =
             case menuItem of
                 PinTab tabIndex ->
                     [ onMouseDown (PinTabAtIndex tabIndex pos) ]
+
+                UnpinTab tabIndex ->
+                    [ onMouseDown (UnpinTabAtIndex tabIndex pos) ]
 
                 CloseTab tabIndex ->
                     [ onMouseDown (CloseTabAtIndex tabIndex) ]
@@ -733,7 +844,7 @@ viewPinningTab movingTabStyle { start } tab =
              , draggable "false"
              , style
                 [ ( "top", px 0 )
-                , ( "left", px start )
+                , ( "left", px start.x )
                 ]
              ]
                 ++ Animation.render movingTabStyle
@@ -775,15 +886,12 @@ viewDraggingTab movingTabStyle { start, current, isPinned } tab =
 -- HELPERS
 
 
-getTabByIndex tabs index =
-    List.drop index tabs
-        |> List.head
-
-
+allTabs : Model -> List String
 allTabs model =
     model.pinnedTabs ++ model.tabs
 
 
+newTabIndex : Bool -> Int -> Int -> Int
 newTabIndex isPinned insertPos numPinned =
     if isPinned && insertPos > (numPinned - 1) then
         (numPinned - 1)
@@ -819,6 +927,7 @@ calcInsertPos xPos numPinned numTabs =
         pinnedTabIndex + tabIndex
 
 
+calcTabWidth : Bool -> number
 calcTabWidth isPinned =
     if isPinned then
         pinnedTabWidth
@@ -826,7 +935,8 @@ calcTabWidth isPinned =
         tabWidth
 
 
-rightMostMouse isPinned pinnedTabs tabs =
+rightMostMouseX : Bool -> List String -> List String -> Int
+rightMostMouseX isPinned pinnedTabs tabs =
     if isPinned then
         allTabsWidth pinnedTabs tabs - (pinnedTabWidth // 2)
     else
@@ -837,17 +947,21 @@ rightMostMouse isPinned pinnedTabs tabs =
 -- CONSTANTS
 
 
+tabWidth : number
 tabWidth =
     100
 
 
+pinnedTabWidth : number
 pinnedTabWidth =
     50
 
 
+halfTab : Int
 halfTab =
     tabWidth // 2
 
 
+allTabsWidth : List String -> List String -> Int
 allTabsWidth pinnedTabs tabs =
     (pinnedTabWidth * List.length pinnedTabs) + (tabWidth * List.length tabs)
