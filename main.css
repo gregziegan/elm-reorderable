@@ -22,7 +22,7 @@ body {
   background-color: cyan;
 }
 
-.dragging-tab {
+.moving-tab {
   top: 0;
   background-color: white;
   position: absolute;

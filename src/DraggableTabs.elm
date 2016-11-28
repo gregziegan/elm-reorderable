@@ -482,7 +482,7 @@ unpinTabAnimation tab ({ start, tabIndex } as pinningTab) model =
             List.length model.tabs
 
         newTabOffset =
-            numPinned * pinnedTabWidth
+            (numPinned - 1) * pinnedTabWidth
 
         offsetFromPinned =
             start.x - newTabOffset
@@ -582,13 +582,13 @@ pinPlaceholderAnimation isPinned model =
                         , ease = (\x -> x ^ 1.5)
                         }
                     )
-                    [ Animation.width <| px <| toFloat <| calcTabWidth isPinned ]
+                    [ Animation.width <| px <| toFloat <| calcTabWidth (not isPinned) ]
                 ]
                 model.startingPlaceholderStyle
     in
         { model
-            | targetPlaceholderStyle = newTargetPlaceholderStyle
-            , startingPlaceholderStyle = newStartingPlaceholderStyle
+            | targetPlaceholderStyle = newStartingPlaceholderStyle
+            , startingPlaceholderStyle = newTargetPlaceholderStyle
         }
 
 
@@ -733,7 +733,7 @@ viewStartingPlaceholder startedPinned model =
          ]
             ++ Animation.render model.startingPlaceholderStyle
         )
-        [ text "starting" ]
+        []
 
 
 viewTargetPlaceholder : Model -> Html Msg
@@ -744,7 +744,7 @@ viewTargetPlaceholder model =
          ]
             ++ Animation.render model.targetPlaceholderStyle
         )
-        [ text "target" ]
+        []
 
 
 viewPlaceholder : Bool -> Model -> Html Msg
@@ -905,7 +905,7 @@ viewSlidingTab movingTabStyle { start, isPinned } tab =
     div
         ([ classList
             [ ( "tab", True )
-            , ( "dragging-tab", True )
+            , ( "moving-tab", True )
             , ( "tab--pinned", isPinned )
             ]
          , draggable "false"
@@ -919,22 +919,19 @@ viewSlidingTab movingTabStyle { start, isPinned } tab =
 viewPinningTab : Animation.Messenger.State Msg -> PinningTab -> String -> Html Msg
 viewPinningTab movingTabStyle { start, startedPinned } tab =
     let
-        px int =
-            (toString int) ++ "px"
-
         tabOffset =
-            start.x - (start.x % tabWidth)
+            start.x - (start.x % calcTabWidth startedPinned)
     in
         div
             ([ classList
                 [ ( "tab", True )
-                , ( "dragging-tab", True )
+                , ( "moving-tab", True )
                 ]
              , draggable "false"
              , style
-                [ ( "top", px 0 )
-                , ( "left", px tabOffset )
-                , ( "width", (px << calcTabWidth) startedPinned )
+                [ ( "top", toPx 0 )
+                , ( "left", toPx tabOffset )
+                , ( "width", (toPx << calcTabWidth) startedPinned )
                 ]
              ]
                 ++ Animation.render movingTabStyle
@@ -957,7 +954,7 @@ viewDraggingTab movingTabStyle { start, current, isPinned } tab =
         div
             ([ classList
                 [ ( "tab", True )
-                , ( "dragging-tab", True )
+                , ( "moving-tab", True )
                 , ( "tab--pinned", isPinned )
                 ]
              , draggable "false"
