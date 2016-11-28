@@ -457,11 +457,7 @@ pinTabAnimation tabs ({ tabIndex, start } as pinningTab) model =
                     , Animation.width <| px tabWidth
                     ]
                 , Animation.toWith
-                    (Animation.easing
-                        { duration = 0.1 * second
-                        , ease = (\x -> x ^ 1.5)
-                        }
-                    )
+                    fastDrift
                     [ Animation.left <| px <| toFloat <| newTabOffset
                     , Animation.width <| px pinnedTabWidth
                     ]
@@ -497,11 +493,7 @@ unpinTabAnimation tab ({ start, tabIndex } as pinningTab) model =
                     , Animation.width <| px pinnedTabWidth
                     ]
                 , Animation.toWith
-                    (Animation.easing
-                        { duration = 0.1 * second
-                        , ease = (\x -> x ^ 1.5)
-                        }
-                    )
+                    fastDrift
                     [ Animation.left <| px <| toFloat <| newTabOffset
                     , Animation.width <| px tabWidth
                     ]
@@ -541,11 +533,7 @@ slidingTabAnimation tabs ({ start, isPinned, tabIndex } as slidingTab) model =
                 [ Animation.set
                     [ Animation.left <| px <| toFloat <| currentLeft ]
                 , Animation.toWith
-                    (Animation.easing
-                        { duration = 0.1 * second
-                        , ease = (\x -> x ^ 1.5)
-                        }
-                    )
+                    fastDrift
                     [ Animation.left <| px <| toFloat <| newTabOffset ]
                 , Animation.Messenger.send (DraggingTabEnd slidingTab { start | x = newTabOffset })
                 ]
@@ -563,12 +551,7 @@ pinPlaceholderAnimation isPinned model =
         newTargetPlaceholderStyle =
             Animation.interrupt
                 [ Animation.set [ Animation.width <| px <| toFloat <| calcTabWidth isPinned ]
-                , Animation.toWith
-                    (Animation.easing
-                        { duration = 0.1 * second
-                        , ease = (\x -> x ^ 1.5)
-                        }
-                    )
+                , Animation.to
                     [ Animation.width <| px 0 ]
                 ]
                 model.targetPlaceholderStyle
@@ -576,12 +559,7 @@ pinPlaceholderAnimation isPinned model =
         newStartingPlaceholderStyle =
             Animation.interrupt
                 [ Animation.set [ Animation.width <| px 0 ]
-                , Animation.toWith
-                    (Animation.easing
-                        { duration = 0.1 * second
-                        , ease = (\x -> x ^ 1.5)
-                        }
-                    )
+                , Animation.to
                     [ Animation.width <| px <| toFloat <| calcTabWidth (not isPinned) ]
                 ]
                 model.startingPlaceholderStyle
@@ -712,7 +690,7 @@ view model =
 
                 Pinning tab ->
                     maybeTabByIndex tab.tabIndex
-                        |> Maybe.map (viewPinningTab model.movingTabStyle tab)
+                        |> Maybe.map (viewPinningTab model tab tab.tabIndex)
     in
         div []
             [ viewTabs model
@@ -916,11 +894,14 @@ viewSlidingTab movingTabStyle { start, isPinned } tab =
         [ text tab ]
 
 
-viewPinningTab : Animation.Messenger.State Msg -> PinningTab -> String -> Html Msg
-viewPinningTab movingTabStyle { start, startedPinned } tab =
+viewPinningTab : Model -> PinningTab -> Int -> String -> Html Msg
+viewPinningTab model { start, startedPinned } index tab =
     let
+        movingTabWidth =
+            calcTabWidth startedPinned
+
         tabOffset =
-            start.x - (start.x % calcTabWidth startedPinned)
+            tabPosition startedPinned start.x model.pinnedTabs
     in
         div
             ([ classList
@@ -931,10 +912,10 @@ viewPinningTab movingTabStyle { start, startedPinned } tab =
              , style
                 [ ( "top", toPx 0 )
                 , ( "left", toPx tabOffset )
-                , ( "width", (toPx << calcTabWidth) startedPinned )
+                , ( "width", toPx movingTabWidth )
                 ]
              ]
-                ++ Animation.render movingTabStyle
+                ++ Animation.render model.movingTabStyle
             )
             [ text tab ]
 
@@ -1035,6 +1016,21 @@ toPx int =
     (toString int) ++ "px"
 
 
+tabPosition : Bool -> Int -> List String -> Int
+tabPosition isPinned xPos pinnedTabs =
+    let
+        numPinned =
+            List.length pinnedTabs
+
+        offsetFromPinned =
+            xPos - (numPinned * pinnedTabWidth)
+    in
+        if isPinned then
+            xPos * pinnedTabWidth
+        else
+            xPos - (offsetFromPinned % tabWidth)
+
+
 
 -- CONSTANTS
 
@@ -1057,3 +1053,11 @@ halfTab =
 allTabsWidth : List String -> List String -> Int
 allTabsWidth pinnedTabs tabs =
     (pinnedTabWidth * List.length pinnedTabs) + (tabWidth * List.length tabs)
+
+
+fastDrift : Animation.Interpolation
+fastDrift =
+    Animation.easing
+        { duration = 0.1 * second
+        , ease = (\x -> x ^ 1.5)
+        }
