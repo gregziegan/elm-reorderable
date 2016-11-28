@@ -41,23 +41,29 @@ subscriptions model =
 -- MODEL
 
 
+type alias Position =
+    { x : Float
+    , y : Float
+    }
+
+
 type alias SlidingTab =
-    { start : Mouse.Position
+    { start : Position
     , tabIndex : Int
     , isPinned : Bool
     }
 
 
 type alias PinningTab =
-    { start : Mouse.Position
+    { start : Position
     , tabIndex : Int
     , startedPinned : Bool
     }
 
 
 type alias DraggingTab =
-    { start : Mouse.Position
-    , current : Mouse.Position
+    { start : Position
+    , current : Position
     , tabIndex : Int
     , isPinned : Bool
     }
@@ -71,7 +77,7 @@ type MovingTab
 
 type alias TabMenu =
     { tabIndex : Int
-    , position : Mouse.Position
+    , position : Position
     , isPinned : Bool
     }
 
@@ -143,7 +149,7 @@ init =
         )
 
 
-initTabMenu : Int -> Mouse.Position -> Bool -> TabMenu
+initTabMenu : Int -> Position -> Bool -> TabMenu
 initTabMenu tabIndex xy isPinned =
     { tabIndex = tabIndex
     , position = xy
@@ -151,7 +157,7 @@ initTabMenu tabIndex xy isPinned =
     }
 
 
-initDraggingTab : Mouse.Position -> Int -> Bool -> DraggingTab
+initDraggingTab : Position -> Int -> Bool -> DraggingTab
 initDraggingTab start tabIndex isPinned =
     { start = start
     , current = start
@@ -160,7 +166,7 @@ initDraggingTab start tabIndex isPinned =
     }
 
 
-initSlidingTab : Mouse.Position -> Int -> Bool -> SlidingTab
+initSlidingTab : Position -> Int -> Bool -> SlidingTab
 initSlidingTab start tabIndex isPinned =
     { start = start
     , tabIndex = tabIndex
@@ -168,7 +174,7 @@ initSlidingTab start tabIndex isPinned =
     }
 
 
-initPinningTab : Mouse.Position -> Int -> Bool -> PinningTab
+initPinningTab : Position -> Int -> Bool -> PinningTab
 initPinningTab start tabIndex startedPinned =
     { start = start
     , tabIndex = tabIndex
@@ -185,13 +191,13 @@ type Msg
     | DraggingTabStart Int Bool Mouse.Position
     | DraggingTabContinues DraggingTab Mouse.Position
     | DraggingTabEnding DraggingTab Mouse.Position
-    | DraggingTabEnd SlidingTab Mouse.Position
+    | DraggingTabEnd SlidingTab Position
     | AnimateMessenger Animation.Msg
     | ToggleTabMenu Int Bool Mouse.Position
     | CloseTabMenu
     | KeyboardExtraMsg Keyboard.Extra.Msg
-    | PinTabAtIndex Int Mouse.Position
-    | UnpinTabAtIndex Int Mouse.Position
+    | PinTabAtIndex Int Position
+    | UnpinTabAtIndex Int Position
     | FinishPinningTab PinningTab
     | FinishUnpinningTab PinningTab
     | CloseTabAtIndex Int
@@ -205,16 +211,19 @@ update msg model =
 
         DraggingTabStart tabIndex isPinned xy ->
             ( model
-                |> startDraggingTab tabIndex isPinned xy
+                |> startDraggingTab tabIndex isPinned (toPosition xy)
             , Cmd.none
             )
 
         DraggingTabContinues draggingTab xy ->
             let
+                pos =
+                    toPosition xy
+
                 newDraggingTab =
                     draggingTab
-                        |> setCurrent xy
-                        |> boundDraggingTabMouse model xy
+                        |> setCurrent pos
+                        |> boundDraggingTabMouse model pos
                         |> Dragging
             in
                 ( { model | movingTab = Just newDraggingTab }
@@ -264,7 +273,7 @@ update msg model =
             ( { model
                 | tabMenu =
                     if model.tabMenu == Nothing then
-                        Just <| initTabMenu tabIndex xy isPinned
+                        Just <| initTabMenu tabIndex (toPosition xy) isPinned
                     else
                         Nothing
               }
@@ -354,29 +363,29 @@ update msg model =
                 ( newModel, Cmd.none )
 
 
-boundDraggingTabMouse : Model -> Mouse.Position -> DraggingTab -> DraggingTab
-boundDraggingTabMouse { pinnedTabs, tabs } xy draggingTab =
+boundDraggingTabMouse : Model -> Position -> DraggingTab -> DraggingTab
+boundDraggingTabMouse { pinnedTabs, tabs } pos draggingTab =
     let
         rightMostX =
             rightMostMouseX draggingTab.isPinned pinnedTabs tabs
 
         boundedXy =
-            if xy.x < (calcTabWidth draggingTab.isPinned) // 2 then
-                { xy | x = 0 }
-            else if xy.x >= rightMostX then
-                { xy | x = rightMostX }
+            if pos.x < (calcTabWidth draggingTab.isPinned) / 2 then
+                { pos | x = 0 }
+            else if pos.x >= rightMostX then
+                { pos | x = rightMostX }
             else
-                xy
+                pos
     in
         { draggingTab | current = boundedXy }
 
 
-setCurrent : Mouse.Position -> DraggingTab -> DraggingTab
+setCurrent : Position -> DraggingTab -> DraggingTab
 setCurrent xy draggingTab =
     { draggingTab | current = xy }
 
 
-startDraggingTab : Int -> Bool -> Mouse.Position -> Model -> Model
+startDraggingTab : Int -> Bool -> Position -> Model -> Model
 startDraggingTab tabIndex isPinned xy model =
     { model | movingTab = Just <| Dragging <| initDraggingTab xy tabIndex isPinned }
 
@@ -433,33 +442,30 @@ pinTabAnimation : List String -> PinningTab -> Model -> Model
 pinTabAnimation tabs ({ tabIndex, start } as pinningTab) model =
     let
         numPinned =
-            List.length model.pinnedTabs
+            (toFloat << List.length) model.pinnedTabs
 
         numTabs =
-            List.length model.tabs
-
-        insertIndex =
-            numPinned
+            (toFloat << List.length) model.tabs
 
         newTabOffset =
-            insertIndex * pinnedTabWidth
+            numPinned * pinnedTabWidth
 
         offsetFromPinned =
             start.x - newTabOffset
 
         startTabOffset =
-            start.x - (offsetFromPinned % tabWidth)
+            start.x - toFloat (floor offsetFromPinned % floor tabWidth)
 
         newMovingTabStyle =
             Animation.interrupt
                 [ Animation.set
-                    [ Animation.left <| px <| toFloat startTabOffset
-                    , Animation.width <| px tabWidth
+                    [ Animation.left (px startTabOffset)
+                    , Animation.width (px tabWidth)
                     ]
                 , Animation.toWith
                     fastDrift
-                    [ Animation.left <| px <| toFloat <| newTabOffset
-                    , Animation.width <| px pinnedTabWidth
+                    [ Animation.left (px newTabOffset)
+                    , Animation.width (px pinnedTabWidth)
                     ]
                 , Animation.Messenger.send (FinishPinningTab pinningTab)
                 ]
@@ -472,10 +478,10 @@ unpinTabAnimation : List String -> PinningTab -> Model -> Model
 unpinTabAnimation tab ({ start, tabIndex } as pinningTab) model =
     let
         numPinned =
-            List.length model.pinnedTabs
+            (toFloat << List.length) model.pinnedTabs
 
         numTabs =
-            List.length model.tabs
+            (toFloat << List.length) model.tabs
 
         newTabOffset =
             (numPinned - 1) * pinnedTabWidth
@@ -484,18 +490,18 @@ unpinTabAnimation tab ({ start, tabIndex } as pinningTab) model =
             start.x - newTabOffset
 
         startTabOffset =
-            start.x - (start.x % pinnedTabWidth)
+            start.x - toFloat ((floor start.x) % (floor pinnedTabWidth))
 
         newMovingTabStyle =
             Animation.interrupt
                 [ Animation.set
-                    [ Animation.left <| px <| toFloat startTabOffset
-                    , Animation.width <| px pinnedTabWidth
+                    [ Animation.left (px startTabOffset)
+                    , Animation.width (px pinnedTabWidth)
                     ]
                 , Animation.toWith
                     fastDrift
-                    [ Animation.left <| px <| toFloat <| newTabOffset
-                    , Animation.width <| px tabWidth
+                    [ Animation.left (px newTabOffset)
+                    , Animation.width (px tabWidth)
                     ]
                 , Animation.Messenger.send (FinishUnpinningTab pinningTab)
                 ]
@@ -511,7 +517,7 @@ slidingTabAnimation tabs ({ start, isPinned, tabIndex } as slidingTab) model =
             calcTabWidth isPinned
 
         currentLeft =
-            max 0 (start.x - (dragTabWidth // 2))
+            max 0 (start.x - (dragTabWidth / 2))
 
         numPinned =
             List.length model.pinnedTabs
@@ -526,15 +532,15 @@ slidingTabAnimation tabs ({ start, isPinned, tabIndex } as slidingTab) model =
             newTabIndex isPinned insertPos numPinned
 
         newTabOffset =
-            ((clamp 0 numPinned insertIndex) * pinnedTabWidth) + ((clamp 0 numTabs (insertIndex - numPinned)) * tabWidth)
+            (toFloat (clamp 0 numPinned insertIndex) * pinnedTabWidth) + (toFloat (clamp 0 numTabs (insertIndex - numPinned)) * tabWidth)
 
         newDraggingTabStyle =
             Animation.interrupt
                 [ Animation.set
-                    [ Animation.left <| px <| toFloat <| currentLeft ]
+                    [ Animation.left (px currentLeft) ]
                 , Animation.toWith
                     fastDrift
-                    [ Animation.left <| px <| toFloat <| newTabOffset ]
+                    [ Animation.left (px newTabOffset) ]
                 , Animation.Messenger.send (DraggingTabEnd slidingTab { start | x = newTabOffset })
                 ]
                 model.movingTabStyle
@@ -550,7 +556,7 @@ pinPlaceholderAnimation isPinned model =
     let
         newTargetPlaceholderStyle =
             Animation.interrupt
-                [ Animation.set [ Animation.width <| px <| toFloat <| calcTabWidth isPinned ]
+                [ Animation.set [ Animation.width <| px <| calcTabWidth isPinned ]
                 , Animation.to
                     [ Animation.width <| px 0 ]
                 ]
@@ -560,7 +566,7 @@ pinPlaceholderAnimation isPinned model =
             Animation.interrupt
                 [ Animation.set [ Animation.width <| px 0 ]
                 , Animation.to
-                    [ Animation.width <| px <| toFloat <| calcTabWidth (not isPinned) ]
+                    [ Animation.width <| px <| calcTabWidth (not isPinned) ]
                 ]
                 model.startingPlaceholderStyle
     in
@@ -575,21 +581,20 @@ resetDraggingTabAnimation model =
     { model | movingTabStyle = Animation.style [] }
 
 
-
--- Shift right
---            |
--- i = [1, 2, 3, 4, 5, 6]
---                  |
--- o = [1, 2, 4, 5, 3, 6]
--- [1, 2] ++ [4, 5] ++ [3] ++ [6]
--- Shift left
---                  |
--- i = [1, 2, 3, 4, 5, 6]
---            |
--- o = [1, 2, 5, 3, 4, 6]
--- [1, 2] ++ [5] ++ [3, 4] ++ [6]
-
-
+{-|
+  Shift right
+             |
+  i = [1, 2, 3, 4, 5, 6]
+                   |
+  o = [1, 2, 4, 5, 3, 6]
+  [1, 2] ++ [4, 5] ++ [3] ++ [6]
+  Shift left
+                   |
+  i = [1, 2, 3, 4, 5, 6]
+             |
+  o = [1, 2, 5, 3, 4, 6]
+  [1, 2] ++ [5] ++ [3, 4] ++ [6]
+-}
 shiftTabs : Int -> Int -> List String -> List String
 shiftTabs newIndex selectedIndex tabs =
     let
@@ -637,7 +642,7 @@ shiftTabs newIndex selectedIndex tabs =
             |> Maybe.withDefault tabs
 
 
-dropTab : SlidingTab -> Mouse.Position -> Model -> Model
+dropTab : SlidingTab -> Position -> Model -> Model
 dropTab { start, tabIndex, isPinned } end model =
     let
         numPinned =
@@ -854,7 +859,7 @@ viewTabMenu { tabIndex, position, isPinned } =
             ]
 
 
-viewTabMenuItem : Mouse.Position -> TabMenuItem -> Html Msg
+viewTabMenuItem : Position -> TabMenuItem -> Html Msg
 viewTabMenuItem pos menuItem =
     let
         menuItemBehaviors =
@@ -923,14 +928,14 @@ viewPinningTab model { start, startedPinned } index tab =
 viewDraggingTab : Animation.Messenger.State Msg -> DraggingTab -> String -> Html Msg
 viewDraggingTab movingTabStyle { start, current, isPinned } tab =
     let
-        px int =
-            (toString int) ++ "px"
+        draggingTabWidth =
+            calcTabWidth isPinned
 
         left =
-            if current.x < (calcTabWidth isPinned // 2) then
-                px 0
+            if current.x < (draggingTabWidth / 2) then
+                0
             else
-                px (current.x - (calcTabWidth isPinned // 2))
+                current.x - (draggingTabWidth / 2)
     in
         div
             ([ classList
@@ -941,8 +946,9 @@ viewDraggingTab movingTabStyle { start, current, isPinned } tab =
              , draggable "false"
              , onMouseUp (SetActive tab)
              , style
-                [ ( "top", px 0 )
-                , ( "left", left )
+                [ ( "top", toPx 0 )
+                , ( "left", toPx left )
+                , ( "width", toPx draggingTabWidth )
                 ]
              ]
                 ++ Animation.render movingTabStyle
@@ -969,33 +975,25 @@ newTabIndex isPinned insertPos numPinned =
         insertPos
 
 
-
--- 600 // 50 = 12, cap at 2, 2
--- 600 // 100 = 6, cap at 4, 4
---
--- 150 // 50 = 3, cap at 2, 2
--- 150 // 100 = 1, cap at 4, 1
---
--- 100 // 50 = 2, cap at 3, 2
--- 100 - (2 * 50) // 100 = 0, cap at 3, 0
-
-
-calcInsertPos : Int -> Int -> Int -> Int
+{-|
+  Calculates which tab index the current mouse position is over
+-}
+calcInsertPos : Float -> Int -> Int -> Int
 calcInsertPos xPos numPinned numTabs =
     let
         posFromPinned =
-            pinnedTabWidth * numPinned
+            pinnedTabWidth * (toFloat numPinned)
 
         pinnedTabIndex =
-            clamp 0 numPinned ((xPos // pinnedTabWidth))
+            floor <| clamp 0.0 (toFloat numPinned) (xPos / pinnedTabWidth)
 
         tabIndex =
-            clamp 0 numTabs (((xPos - posFromPinned) // tabWidth))
+            floor <| clamp 0.0 (toFloat numTabs) ((xPos - posFromPinned) / tabWidth)
     in
         pinnedTabIndex + tabIndex
 
 
-calcTabWidth : Bool -> number
+calcTabWidth : Bool -> Float
 calcTabWidth isPinned =
     if isPinned then
         pinnedTabWidth
@@ -1003,56 +1001,65 @@ calcTabWidth isPinned =
         tabWidth
 
 
-rightMostMouseX : Bool -> List String -> List String -> Int
+rightMostMouseX : Bool -> List String -> List String -> Float
 rightMostMouseX isPinned pinnedTabs tabs =
     if isPinned then
-        allTabsWidth pinnedTabs tabs - (pinnedTabWidth // 2)
+        allTabsWidth pinnedTabs tabs - (pinnedTabWidth / 2)
     else
-        (allTabsWidth pinnedTabs tabs) - halfTab
+        (allTabsWidth pinnedTabs tabs) - (tabWidth / 2)
 
 
-toPx : Int -> String
-toPx int =
-    (toString int) ++ "px"
+toPx : number -> String
+toPx num =
+    (toString num) ++ "px"
 
 
-tabPosition : Bool -> Int -> List String -> Int
+tabPosition : Bool -> Float -> List String -> Float
 tabPosition isPinned xPos pinnedTabs =
     let
         numPinned =
-            List.length pinnedTabs
+            (toFloat << List.length) pinnedTabs
 
         offsetFromPinned =
-            xPos - (numPinned * pinnedTabWidth)
+            floor <| xPos - (numPinned * pinnedTabWidth)
     in
         if isPinned then
             xPos * pinnedTabWidth
         else
-            xPos - (offsetFromPinned % tabWidth)
+            xPos - (toFloat (offsetFromPinned % (floor tabWidth)))
+
+
+toPosition : Mouse.Position -> Position
+toPosition { x, y } =
+    { x = toFloat x
+    , y = toFloat y
+    }
 
 
 
 -- CONSTANTS
 
 
-tabWidth : number
+tabWidth : Float
 tabWidth =
     100
 
 
-pinnedTabWidth : number
+pinnedTabWidth : Float
 pinnedTabWidth =
     50
 
 
-halfTab : Int
-halfTab =
-    tabWidth // 2
-
-
-allTabsWidth : List String -> List String -> Int
+allTabsWidth : List String -> List String -> Float
 allTabsWidth pinnedTabs tabs =
-    (pinnedTabWidth * List.length pinnedTabs) + (tabWidth * List.length tabs)
+    let
+        numTabs =
+            (toFloat << List.length) tabs
+
+        numPinned =
+            (toFloat << List.length) pinnedTabs
+    in
+        (pinnedTabWidth * numPinned) + (tabWidth * numTabs)
 
 
 fastDrift : Animation.Interpolation
