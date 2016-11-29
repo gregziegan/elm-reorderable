@@ -2,18 +2,9 @@ body {
   margin: 0;
 }
 
-.tab {
-  height: 50px;
-  border: 1px solid gray;
-  cursor: pointer;
-}
-
 .tab--pinned {
-}
-
-.tab-list {
-  display: flex;
-  user-select: none;
+  justify-content: center;
+  align-items: center;
 }
 
 .tab-logo {
@@ -39,6 +30,7 @@ body {
 
 .tab-subtitle {
   margin: 0;
+  font-size: 11px;
 }
 
 .elm-logo {
@@ -46,13 +38,13 @@ body {
   height: 25px;
 }
 
-.var-tabs {
+.tab-list {
   display: flex;
   user-select: none;
   width: 910px;
 }
 
-.var-tab {
+.tab {
   height: 50px;
   border: 1px solid gray;
   cursor: pointer;
@@ -60,7 +52,7 @@ body {
 }
 
 .tab--selected {
-  background-color: cyan;
+  background-color: #F0AD00;
 }
 
 .moving-tab {

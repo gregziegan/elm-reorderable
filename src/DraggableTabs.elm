@@ -449,7 +449,7 @@ pinTabAnimation tabs ({ tabIndex, start } as pinningTab) model =
             (toFloat << List.length) model.pinnedTabs
 
         numTabs =
-            (toFloat << List.length) model.tabs
+            List.length model.tabs
 
         newTabOffset =
             numPinned * pinnedTabWidth
@@ -457,14 +457,17 @@ pinTabAnimation tabs ({ tabIndex, start } as pinningTab) model =
         offsetFromPinned =
             start.x - newTabOffset
 
+        varTabWidth =
+            calcVarTabWidth False numTabs
+
         startTabOffset =
-            start.x - toFloat (floor offsetFromPinned % floor tabWidth)
+            start.x - toFloat (floor offsetFromPinned % floor varTabWidth)
 
         newMovingTabStyle =
             Animation.interrupt
                 [ Animation.set
                     [ Animation.left (px startTabOffset)
-                    , Animation.width (px tabWidth)
+                    , Animation.width (px varTabWidth)
                     ]
                 , Animation.toWith
                     fastDrift
@@ -485,13 +488,16 @@ unpinTabAnimation tab ({ start, tabIndex } as pinningTab) model =
             (toFloat << List.length) model.pinnedTabs
 
         numTabs =
-            (toFloat << List.length) model.tabs
+            List.length model.tabs
 
         newTabOffset =
             (numPinned - 1) * pinnedTabWidth
 
         offsetFromPinned =
             start.x - newTabOffset
+
+        varTabWidth =
+            calcVarTabWidth False numTabs
 
         startTabOffset =
             start.x - toFloat ((floor start.x) % (floor pinnedTabWidth))
@@ -505,7 +511,7 @@ unpinTabAnimation tab ({ start, tabIndex } as pinningTab) model =
                 , Animation.toWith
                     fastDrift
                     [ Animation.left (px newTabOffset)
-                    , Animation.width (px tabWidth)
+                    , Animation.width (px varTabWidth)
                     ]
                 , Animation.Messenger.send (FinishUnpinningTab pinningTab)
                 ]
@@ -715,23 +721,7 @@ view model =
             , model.tabMenu
                 |> Maybe.map viewTabMenu
                 |> Maybe.withDefault (text "")
-              -- , viewVarTabs model
             ]
-
-
-viewVarTabs model =
-    div [ class "var-tabs" ]
-        (List.map viewVarTab model.tabs)
-
-
-viewVarTab tab =
-    div [ class "var-tab" ]
-        [ div [ class "tab-logo" ] [ viewElmLogo ]
-        , div [ class "tab-info" ]
-            [ h4 [ class "tab-title" ] [ text tab ]
-            , p [ class "tab-subtitle" ] [ text "Elm" ]
-            ]
-        ]
 
 
 viewStartingPlaceholder : Bool -> Model -> Html Msg
@@ -825,7 +815,7 @@ viewTabs model =
                         Just <| viewDraggableTabsWithTabPlaceholder isPinned (insertPos current) tabIndex
     in
         div
-            [ class "var-tabs"
+            [ class "tab-list"
             , draggable "false"
             ]
             (model.movingTab
@@ -847,7 +837,7 @@ viewTab model index tab =
     in
         div
             [ classList
-                [ ( "var-tab", True )
+                [ ( "tab", True )
                 , ( "tab--selected", model.selected == tab )
                 , ( "tab--pinned", isPinned )
                 ]
@@ -857,7 +847,20 @@ viewTab model index tab =
             , onWithOptions "contextmenu" defaultPrevented <| Json.map (ToggleTabMenu index isPinned) Mouse.position
             , on "mousedown" <| Json.map (DraggingTabStart index isPinned) Mouse.position
             ]
-            [ text tab ]
+            (viewTabContent isPinned tab)
+
+
+viewTabContent : Bool -> String -> List (Html Msg)
+viewTabContent isPinned tab =
+    if isPinned then
+        [ div [ class "tab-logo" ] [ viewElmLogo ] ]
+    else
+        [ div [ class "tab-logo" ] [ viewElmLogo ]
+        , div [ class "tab-info" ]
+            [ h4 [ class "tab-title" ] [ text tab ]
+            , p [ class "tab-subtitle" ] [ text "drag me!" ]
+            ]
+        ]
 
 
 viewTabMenu : TabMenu -> Html Msg
@@ -930,7 +933,7 @@ viewSlidingTab model { start, isPinned } tab =
              ]
                 ++ Animation.render model.movingTabStyle
             )
-            [ text tab ]
+            (viewTabContent isPinned tab)
 
 
 viewPinningTab : Model -> PinningTab -> Int -> String -> Html Msg
@@ -956,7 +959,7 @@ viewPinningTab model { start, startedPinned } index tab =
              ]
                 ++ Animation.render model.movingTabStyle
             )
-            [ text tab ]
+            (viewTabContent startedPinned tab)
 
 
 viewDraggingTab : Model -> DraggingTab -> String -> Html Msg
@@ -987,7 +990,7 @@ viewDraggingTab model { start, current, isPinned } tab =
              ]
                 ++ Animation.render model.movingTabStyle
             )
-            [ text tab ]
+            (viewTabContent isPinned tab)
 
 
 
@@ -1025,14 +1028,6 @@ calcInsertPos xPos numPinned numTabs =
             floor <| clamp 0.0 (toFloat numTabs) ((xPos - posFromPinned) / calcVarTabWidth False numTabs)
     in
         pinnedTabIndex + tabIndex
-
-
-calcTabWidth : Bool -> Float
-calcTabWidth isPinned =
-    if isPinned then
-        pinnedTabWidth
-    else
-        tabWidth
 
 
 calcVarTabWidth : Bool -> Int -> Float
@@ -1089,24 +1084,18 @@ toPosition { x, y } =
 -- CONSTANTS
 
 
+containerWidth : Float
 containerWidth =
     910
 
 
-tabBasis =
-    0.2
-
-
+maxTabWidth : Float
 maxTabWidth =
     202
 
 
+minTabWidth : Float
 minTabWidth =
-    102
-
-
-tabWidth : Float
-tabWidth =
     102
 
 
