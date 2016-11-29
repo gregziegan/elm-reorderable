@@ -940,7 +940,7 @@ viewPinningTab model { start, startedPinned } index tab =
             calcVarTabWidth startedPinned (List.length model.tabs)
 
         tabOffset =
-            tabPosition startedPinned index (List.length model.pinnedTabs)
+            tabPosition startedPinned index (List.length model.pinnedTabs) (List.length model.tabs)
     in
         div
             ([ classList
@@ -1069,13 +1069,13 @@ toPx num =
 {-|
 Calculate the x position for a tab with an index
 -}
-tabPosition : Bool -> Int -> Int -> Float
-tabPosition isPinned index numPinned =
+tabPosition : Bool -> Int -> Int -> Int -> Float
+tabPosition isPinned index numPinned numTabs =
     if isPinned then
         (toFloat index) * pinnedTabWidth
     else
         (toFloat numPinned * pinnedTabWidth)
-            + (toFloat (index - numPinned) * tabWidth)
+            + (toFloat (index - numPinned) * (calcVarTabWidth False numTabs))
 
 
 toPosition : Mouse.Position -> Position
