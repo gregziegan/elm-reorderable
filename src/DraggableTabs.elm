@@ -42,6 +42,14 @@ subscriptions model =
 -- MODEL
 
 
+type alias Config =
+    { containerWidth : Float
+    , maxTabWidth : Float
+    , minTabWidth : Float
+    , pinnedTabWidth : Float
+    }
+
+
 type alias Position =
     { x : Float
     , y : Float
@@ -204,8 +212,8 @@ type Msg
     | CloseTabAtIndex Int
 
 
-update : Msg -> Model -> ( Model, Cmd Msg )
-update msg model =
+update : Config -> Msg -> Model -> ( Model, Cmd Msg )
+update config msg model =
     case msg of
         SetActive tabId ->
             ( { model | selected = tabId }, Cmd.none )
@@ -224,7 +232,7 @@ update msg model =
                 newDraggingTab =
                     draggingTab
                         |> setCurrent pos
-                        |> boundDraggingTabMouse model pos
+                        |> boundDraggingTabMouse config model pos
                         |> Dragging
             in
                 ( { model | movingTab = Just newDraggingTab }
@@ -240,13 +248,13 @@ update msg model =
                     ( { model | movingTab = Nothing }, Cmd.none )
                 else
                     ( { model | movingTab = Just <| Sliding slidingTab }
-                        |> slidingTabAnimation (allTabs model) slidingTab
+                        |> slidingTabAnimation config (allTabs model) slidingTab
                     , Cmd.none
                     )
 
         DraggingTabEnd slidingTab xy ->
             ( model
-                |> dropTab slidingTab xy
+                |> dropTab config slidingTab xy
                 |> resetDraggingTabAnimation
             , Cmd.none
             )
@@ -318,8 +326,8 @@ update msg model =
             in
                 ( { model | movingTab = Just <| Pinning pinningTab }
                     |> resetDraggingTabAnimation
-                    |> pinTabAnimation tabs pinningTab
-                    |> pinPlaceholderAnimation False
+                    |> pinTabAnimation config tabs pinningTab
+                    |> pinPlaceholderAnimation config False
                 , Cmd.none
                 )
 
@@ -333,8 +341,8 @@ update msg model =
             in
                 ( { model | movingTab = Just <| Pinning pinningTab }
                     |> resetDraggingTabAnimation
-                    |> unpinTabAnimation tabs pinningTab
-                    |> pinPlaceholderAnimation True
+                    |> unpinTabAnimation config tabs pinningTab
+                    |> pinPlaceholderAnimation config True
                 , Cmd.none
                 )
 
@@ -364,17 +372,20 @@ update msg model =
                 ( newModel, Cmd.none )
 
 
-boundDraggingTabMouse : Model -> Position -> DraggingTab -> DraggingTab
-boundDraggingTabMouse { pinnedTabs, tabs } pos draggingTab =
+boundDraggingTabMouse : Config -> Model -> Position -> DraggingTab -> DraggingTab
+boundDraggingTabMouse config { pinnedTabs, tabs } pos draggingTab =
     let
         numTabs =
             List.length tabs
 
         rightMostX =
-            rightMostMouseX draggingTab.isPinned pinnedTabs tabs
+            rightMostMouseX config draggingTab.isPinned pinnedTabs tabs
+
+        varTabWidth =
+            calcVarTabWidth config draggingTab.isPinned numTabs
 
         boundedXy =
-            if pos.x < (calcVarTabWidth draggingTab.isPinned numTabs) / 2 then
+            if pos.x < varTabWidth / 2 then
                 { pos | x = 0 }
             else if pos.x >= rightMostX then
                 { pos | x = rightMostX }
@@ -442,8 +453,8 @@ unpinTab tabIndex model =
         }
 
 
-pinTabAnimation : List String -> PinningTab -> Model -> Model
-pinTabAnimation tabs ({ tabIndex, start } as pinningTab) model =
+pinTabAnimation : Config -> List String -> PinningTab -> Model -> Model
+pinTabAnimation ({ pinnedTabWidth } as config) tabs ({ tabIndex, start } as pinningTab) model =
     let
         numPinned =
             (toFloat << List.length) model.pinnedTabs
@@ -458,7 +469,7 @@ pinTabAnimation tabs ({ tabIndex, start } as pinningTab) model =
             start.x - newTabOffset
 
         varTabWidth =
-            calcVarTabWidth False numTabs
+            calcVarTabWidth config False numTabs
 
         startTabOffset =
             start.x - toFloat (floor offsetFromPinned % floor varTabWidth)
@@ -481,8 +492,8 @@ pinTabAnimation tabs ({ tabIndex, start } as pinningTab) model =
         { model | movingTabStyle = newMovingTabStyle }
 
 
-unpinTabAnimation : List String -> PinningTab -> Model -> Model
-unpinTabAnimation tab ({ start, tabIndex } as pinningTab) model =
+unpinTabAnimation : Config -> List String -> PinningTab -> Model -> Model
+unpinTabAnimation ({ pinnedTabWidth } as config) tab ({ start, tabIndex } as pinningTab) model =
     let
         numPinned =
             (toFloat << List.length) model.pinnedTabs
@@ -497,7 +508,7 @@ unpinTabAnimation tab ({ start, tabIndex } as pinningTab) model =
             start.x - newTabOffset
 
         varTabWidth =
-            calcVarTabWidth False numTabs
+            calcVarTabWidth config False numTabs
 
         startTabOffset =
             start.x - toFloat ((floor start.x) % (floor pinnedTabWidth))
@@ -520,11 +531,11 @@ unpinTabAnimation tab ({ start, tabIndex } as pinningTab) model =
         { model | movingTabStyle = newMovingTabStyle }
 
 
-slidingTabAnimation : List String -> SlidingTab -> Model -> Model
-slidingTabAnimation tabs ({ start, isPinned, tabIndex } as slidingTab) model =
+slidingTabAnimation : Config -> List String -> SlidingTab -> Model -> Model
+slidingTabAnimation config tabs ({ start, isPinned, tabIndex } as slidingTab) model =
     let
         dragTabWidth =
-            calcVarTabWidth isPinned (List.length model.tabs)
+            calcVarTabWidth config isPinned (List.length model.tabs)
 
         currentLeft =
             max 0 (start.x - (dragTabWidth / 2))
@@ -536,16 +547,16 @@ slidingTabAnimation tabs ({ start, isPinned, tabIndex } as slidingTab) model =
             List.length model.tabs
 
         insertPos =
-            calcInsertPos start.x numPinned numTabs
+            calcInsertPos config start.x numPinned numTabs
 
         insertIndex =
             newTabIndex isPinned insertPos numPinned
 
         varTabWidth =
-            calcVarTabWidth False (List.length model.tabs)
+            calcVarTabWidth config False (List.length model.tabs)
 
         newTabOffset =
-            (toFloat (clamp 0 numPinned insertIndex) * pinnedTabWidth) + (toFloat (clamp 0 numTabs (insertIndex - numPinned)) * varTabWidth)
+            (toFloat (clamp 0 numPinned insertIndex) * config.pinnedTabWidth) + (toFloat (clamp 0 numTabs (insertIndex - numPinned)) * varTabWidth)
 
         newDraggingTabStyle =
             Animation.interrupt
@@ -564,15 +575,15 @@ slidingTabAnimation tabs ({ start, isPinned, tabIndex } as slidingTab) model =
         }
 
 
-pinPlaceholderAnimation : Bool -> Model -> Model
-pinPlaceholderAnimation isPinned model =
+pinPlaceholderAnimation : Config -> Bool -> Model -> Model
+pinPlaceholderAnimation config isPinned model =
     let
         numTabs =
             List.length model.tabs
 
         newTargetPlaceholderStyle =
             Animation.interrupt
-                [ Animation.set [ Animation.width <| px <| calcVarTabWidth isPinned numTabs ]
+                [ Animation.set [ Animation.width <| px <| calcVarTabWidth config isPinned numTabs ]
                 , Animation.to
                     [ Animation.width <| px 0 ]
                 ]
@@ -582,7 +593,7 @@ pinPlaceholderAnimation isPinned model =
             Animation.interrupt
                 [ Animation.set [ Animation.width <| px 0 ]
                 , Animation.to
-                    [ Animation.width <| px <| calcVarTabWidth (not isPinned) numTabs ]
+                    [ Animation.width <| px <| calcVarTabWidth config (not isPinned) numTabs ]
                 ]
                 model.startingPlaceholderStyle
     in
@@ -658,8 +669,8 @@ shiftTabs newIndex selectedIndex tabs =
             |> Maybe.withDefault tabs
 
 
-dropTab : SlidingTab -> Position -> Model -> Model
-dropTab { start, tabIndex, isPinned } end model =
+dropTab : Config -> SlidingTab -> Position -> Model -> Model
+dropTab config { start, tabIndex, isPinned } end model =
     let
         numPinned =
             List.length model.pinnedTabs
@@ -668,7 +679,7 @@ dropTab { start, tabIndex, isPinned } end model =
             List.length model.tabs
 
         insertPos =
-            calcInsertPos start.x numPinned numTabs
+            calcInsertPos config start.x numPinned numTabs
 
         newIndex =
             newTabIndex isPinned insertPos numPinned
@@ -687,8 +698,8 @@ dropTab { start, tabIndex, isPinned } end model =
 -- VIEW
 
 
-view : Model -> Html Msg
-view model =
+view : Config -> Model -> Html Msg
+view config model =
     let
         maybeTabByIndex index =
             model
@@ -703,18 +714,18 @@ view model =
                         Nothing
                     else
                         maybeTabByIndex tabIndex
-                            |> Maybe.map (viewDraggingTab model tab)
+                            |> Maybe.map (viewDraggingTab config model tab)
 
                 Sliding tab ->
                     maybeTabByIndex tab.tabIndex
-                        |> Maybe.map (viewSlidingTab model tab)
+                        |> Maybe.map (viewSlidingTab config model tab)
 
                 Pinning tab ->
                     maybeTabByIndex tab.tabIndex
-                        |> Maybe.map (viewPinningTab model tab tab.tabIndex)
+                        |> Maybe.map (viewPinningTab config model tab tab.tabIndex)
     in
         div []
-            [ viewTabs model
+            [ viewTabs config model
             , model.movingTab
                 |> Maybe.andThen maybeViewMovingTab
                 |> Maybe.withDefault (text "")
@@ -724,11 +735,11 @@ view model =
             ]
 
 
-viewStartingPlaceholder : Bool -> Model -> Html Msg
-viewStartingPlaceholder startedPinned model =
+viewStartingPlaceholder : Config -> Bool -> Model -> Html Msg
+viewStartingPlaceholder config startedPinned model =
     div
         ([ class "tab-placeholder"
-         , style [ ( "width", toPx <| calcVarTabWidth startedPinned (List.length model.tabs) ) ]
+         , style [ ( "width", toPx <| calcVarTabWidth config startedPinned (List.length model.tabs) ) ]
          ]
             ++ Animation.render model.startingPlaceholderStyle
         )
@@ -746,36 +757,36 @@ viewTargetPlaceholder model =
         []
 
 
-viewPlaceholder : Bool -> Model -> Html Msg
-viewPlaceholder isPinned model =
+viewPlaceholder : Config -> Bool -> Model -> Html Msg
+viewPlaceholder config isPinned model =
     div
         [ class "tab-placeholder"
-        , style [ ( "width", toPx <| calcVarTabWidth isPinned (List.length model.tabs) ) ]
+        , style [ ( "width", toPx <| calcVarTabWidth config isPinned (List.length model.tabs) ) ]
         ]
         []
 
 
-viewTabs : Model -> Html Msg
-viewTabs model =
+viewTabs : Config -> Model -> Html Msg
+viewTabs config model =
     let
         numPinned =
             List.length model.pinnedTabs
 
         insertPos current =
-            calcInsertPos current.x numPinned (List.length model.tabs)
+            calcInsertPos config current.x numPinned (List.length model.tabs)
 
         draggableTabs =
-            List.indexedMap (viewTab model) (allTabs model)
+            List.indexedMap (viewTab config model) (allTabs model)
 
         reorderedTabsPreview insertIndex tabIndex =
             allTabs model
                 |> shiftTabs insertIndex tabIndex
-                |> List.indexedMap (viewTab model)
+                |> List.indexedMap (viewTab config model)
 
         viewDraggableTabsWithTabPlaceholder isPinned insertIndex tabIndex =
             List.concat
                 [ List.take insertIndex (reorderedTabsPreview insertIndex tabIndex)
-                , [ viewPlaceholder isPinned model ]
+                , [ viewPlaceholder config isPinned model ]
                 , List.drop (insertIndex + 1) (reorderedTabsPreview insertIndex tabIndex)
                 ]
 
@@ -784,14 +795,14 @@ viewTabs model =
                 [ List.take numPinned draggableTabs
                 , [ viewTargetPlaceholder model ]
                 , List.drop numPinned <| List.take tabIndex draggableTabs
-                , [ viewStartingPlaceholder False model ]
+                , [ viewStartingPlaceholder config False model ]
                 , List.drop (tabIndex + 1) draggableTabs
                 ]
 
         viewDraggableTabsWithUnpinningPlaceholders tabIndex =
             List.concat
                 [ List.take tabIndex draggableTabs
-                , [ viewStartingPlaceholder True model ]
+                , [ viewStartingPlaceholder config True model ]
                 , List.drop (tabIndex + 1) <| List.take numPinned draggableTabs
                 , [ viewTargetPlaceholder model ]
                 , List.drop numPinned draggableTabs
@@ -829,8 +840,8 @@ defaultPrevented =
     Html.Events.Options False True
 
 
-viewTab : Model -> Int -> String -> Html Msg
-viewTab model index tab =
+viewTab : Config -> Model -> Int -> String -> Html Msg
+viewTab config model index tab =
     let
         isPinned =
             List.any ((==) tab) model.pinnedTabs
@@ -841,7 +852,7 @@ viewTab model index tab =
                 , ( "tab--selected", model.selected == tab )
                 , ( "tab--pinned", isPinned )
                 ]
-            , style [ ( "width", (toPx << calcVarTabWidth isPinned) (List.length model.tabs) ) ]
+            , style [ ( "width", (toPx << calcVarTabWidth config isPinned) (List.length model.tabs) ) ]
             , contextmenu "tab-menu"
             , onMouseUp (SetActive tab)
             , onWithOptions "contextmenu" defaultPrevented <| Json.map (ToggleTabMenu index isPinned) Mouse.position
@@ -913,11 +924,11 @@ viewTabMenuItem pos menuItem =
             [ text <| tabMenuItemToString menuItem ]
 
 
-viewSlidingTab : Model -> SlidingTab -> String -> Html Msg
-viewSlidingTab model { start, isPinned } tab =
+viewSlidingTab : Config -> Model -> SlidingTab -> String -> Html Msg
+viewSlidingTab config model { start, isPinned } tab =
     let
         slidingTabWidth =
-            calcVarTabWidth isPinned (List.length model.tabs)
+            calcVarTabWidth config isPinned (List.length model.tabs)
     in
         div
             ([ classList
@@ -936,14 +947,14 @@ viewSlidingTab model { start, isPinned } tab =
             (viewTabContent isPinned tab)
 
 
-viewPinningTab : Model -> PinningTab -> Int -> String -> Html Msg
-viewPinningTab model { start, startedPinned } index tab =
+viewPinningTab : Config -> Model -> PinningTab -> Int -> String -> Html Msg
+viewPinningTab config model { start, startedPinned } index tab =
     let
         movingTabWidth =
-            calcVarTabWidth startedPinned (List.length model.tabs)
+            calcVarTabWidth config startedPinned (List.length model.tabs)
 
         tabOffset =
-            tabPosition startedPinned index (List.length model.pinnedTabs) (List.length model.tabs)
+            tabPosition config startedPinned index (List.length model.pinnedTabs) (List.length model.tabs)
     in
         div
             ([ classList
@@ -962,11 +973,11 @@ viewPinningTab model { start, startedPinned } index tab =
             (viewTabContent startedPinned tab)
 
 
-viewDraggingTab : Model -> DraggingTab -> String -> Html Msg
-viewDraggingTab model { start, current, isPinned } tab =
+viewDraggingTab : Config -> Model -> DraggingTab -> String -> Html Msg
+viewDraggingTab config model { start, current, isPinned } tab =
     let
         draggingTabWidth =
-            calcVarTabWidth isPinned (List.length model.tabs)
+            calcVarTabWidth config isPinned (List.length model.tabs)
 
         left =
             if current.x < (draggingTabWidth / 2) then
@@ -1015,9 +1026,12 @@ newTabIndex isPinned insertPos numPinned =
 {-|
   Calculates which tab index the current mouse position is over
 -}
-calcInsertPos : Float -> Int -> Int -> Int
-calcInsertPos xPos numPinned numTabs =
+calcInsertPos : Config -> Float -> Int -> Int -> Int
+calcInsertPos config xPos numPinned numTabs =
     let
+        { pinnedTabWidth } =
+            config
+
         posFromPinned =
             pinnedTabWidth * (toFloat numPinned)
 
@@ -1025,14 +1039,17 @@ calcInsertPos xPos numPinned numTabs =
             floor <| clamp 0.0 (toFloat numPinned) (xPos / pinnedTabWidth)
 
         tabIndex =
-            floor <| clamp 0.0 (toFloat numTabs) ((xPos - posFromPinned) / calcVarTabWidth False numTabs)
+            floor <| clamp 0.0 (toFloat numTabs) ((xPos - posFromPinned) / calcVarTabWidth config False numTabs)
     in
         pinnedTabIndex + tabIndex
 
 
-calcVarTabWidth : Bool -> Int -> Float
-calcVarTabWidth isPinned numTabs =
+calcVarTabWidth : Config -> Bool -> Int -> Float
+calcVarTabWidth config isPinned numTabs =
     let
+        { minTabWidth, maxTabWidth, containerWidth, pinnedTabWidth } =
+            config
+
         totalTabWidth =
             (toFloat numTabs * maxTabWidth)
 
@@ -1048,12 +1065,12 @@ calcVarTabWidth isPinned numTabs =
             varTabWidth
 
 
-rightMostMouseX : Bool -> List String -> List String -> Float
-rightMostMouseX isPinned pinnedTabs tabs =
+rightMostMouseX : Config -> Bool -> List String -> List String -> Float
+rightMostMouseX config isPinned pinnedTabs tabs =
     if isPinned then
-        allTabsWidth pinnedTabs tabs - (pinnedTabWidth / 2)
+        allTabsWidth config pinnedTabs tabs - (config.pinnedTabWidth / 2)
     else
-        (allTabsWidth pinnedTabs tabs) - (calcVarTabWidth False (List.length tabs) / 2)
+        (allTabsWidth config pinnedTabs tabs) - (calcVarTabWidth config False (List.length tabs) / 2)
 
 
 toPx : number -> String
@@ -1064,13 +1081,13 @@ toPx num =
 {-|
 Calculate the x position for a tab with an index
 -}
-tabPosition : Bool -> Int -> Int -> Int -> Float
-tabPosition isPinned index numPinned numTabs =
+tabPosition : Config -> Bool -> Int -> Int -> Int -> Float
+tabPosition config isPinned index numPinned numTabs =
     if isPinned then
-        (toFloat index) * pinnedTabWidth
+        (toFloat index) * config.pinnedTabWidth
     else
-        (toFloat numPinned * pinnedTabWidth)
-            + (toFloat (index - numPinned) * (calcVarTabWidth False numTabs))
+        (toFloat numPinned * config.pinnedTabWidth)
+            + (toFloat (index - numPinned) * (calcVarTabWidth config False numTabs))
 
 
 toPosition : Mouse.Position -> Position
@@ -1080,32 +1097,8 @@ toPosition { x, y } =
     }
 
 
-
--- CONSTANTS
-
-
-containerWidth : Float
-containerWidth =
-    910
-
-
-maxTabWidth : Float
-maxTabWidth =
-    202
-
-
-minTabWidth : Float
-minTabWidth =
-    102
-
-
-pinnedTabWidth : Float
-pinnedTabWidth =
-    52
-
-
-allTabsWidth : List String -> List String -> Float
-allTabsWidth pinnedTabs tabs =
+allTabsWidth : Config -> List String -> List String -> Float
+allTabsWidth ({ pinnedTabWidth } as config) pinnedTabs tabs =
     let
         numTabs =
             (toFloat << List.length) tabs
@@ -1114,9 +1107,13 @@ allTabsWidth pinnedTabs tabs =
             (toFloat << List.length) pinnedTabs
 
         varTabWidth =
-            calcVarTabWidth False (List.length tabs)
+            calcVarTabWidth config False (List.length tabs)
     in
         (pinnedTabWidth * numPinned) + (varTabWidth * numTabs)
+
+
+
+-- CONSTANTS
 
 
 fastDrift : Animation.Interpolation
