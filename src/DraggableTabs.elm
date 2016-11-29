@@ -825,6 +825,7 @@ viewTab model index tab =
                 , ( "tab--selected", model.selected == tab )
                 , ( "tab--pinned", isPinned )
                 ]
+            , style [ ( "width", (toPx << calcTabWidth) isPinned ) ]
             , contextmenu "tab-menu"
             , onMouseUp (SetActive tab)
             , onWithOptions "contextmenu" defaultPrevented <| Json.map (ToggleTabMenu index isPinned) Mouse.position
@@ -885,18 +886,25 @@ viewTabMenuItem pos menuItem =
 
 viewSlidingTab : Animation.Messenger.State Msg -> SlidingTab -> String -> Html Msg
 viewSlidingTab movingTabStyle { start, isPinned } tab =
-    div
-        ([ classList
-            [ ( "tab", True )
-            , ( "moving-tab", True )
-            , ( "tab--pinned", isPinned )
-            ]
-         , draggable "false"
-         , style [ ( "left", toString start ++ "px" ) ]
-         ]
-            ++ Animation.render movingTabStyle
-        )
-        [ text tab ]
+    let
+        slidingTabWidth =
+            calcTabWidth isPinned
+    in
+        div
+            ([ classList
+                [ ( "tab", True )
+                , ( "moving-tab", True )
+                , ( "tab--pinned", isPinned )
+                ]
+             , draggable "false"
+             , style
+                [ ( "left", toPx (start.x - slidingTabWidth / 2) )
+                , ( "width", toPx slidingTabWidth )
+                ]
+             ]
+                ++ Animation.render movingTabStyle
+            )
+            [ text tab ]
 
 
 viewPinningTab : Model -> PinningTab -> Int -> String -> Html Msg
@@ -906,7 +914,7 @@ viewPinningTab model { start, startedPinned } index tab =
             calcTabWidth startedPinned
 
         tabOffset =
-            tabPosition startedPinned start.x model.pinnedTabs
+            tabPosition startedPinned index (List.length model.pinnedTabs)
     in
         div
             ([ classList
@@ -1014,19 +1022,16 @@ toPx num =
     (toString num) ++ "px"
 
 
-tabPosition : Bool -> Float -> List String -> Float
-tabPosition isPinned xPos pinnedTabs =
-    let
-        numPinned =
-            (toFloat << List.length) pinnedTabs
-
-        offsetFromPinned =
-            floor <| xPos - (numPinned * pinnedTabWidth)
-    in
-        if isPinned then
-            xPos * pinnedTabWidth
-        else
-            xPos - (toFloat (offsetFromPinned % (floor tabWidth)))
+{-|
+Calculate the x position for a tab with an index
+-}
+tabPosition : Bool -> Int -> Int -> Float
+tabPosition isPinned index numPinned =
+    if isPinned then
+        (toFloat index) * pinnedTabWidth
+    else
+        (toFloat numPinned * pinnedTabWidth)
+            + (toFloat (index - numPinned) * tabWidth)
 
 
 toPosition : Mouse.Position -> Position
@@ -1042,12 +1047,12 @@ toPosition { x, y } =
 
 tabWidth : Float
 tabWidth =
-    100
+    102
 
 
 pinnedTabWidth : Float
 pinnedTabWidth =
-    50
+    52
 
 
 allTabsWidth : List String -> List String -> Float

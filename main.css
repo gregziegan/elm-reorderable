@@ -3,14 +3,12 @@ body {
 }
 
 .tab {
-  width: 100px;
   height: 50px;
   border: 1px solid gray;
   cursor: pointer;
 }
 
 .tab--pinned {
-  width: 50px;
 }
 
 .tab-list {
