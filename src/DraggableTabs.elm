@@ -9,6 +9,7 @@ import Animation exposing (px)
 import Animation.Messenger
 import Time exposing (second)
 import Keyboard.Extra
+import Svgs exposing (viewElmLogo)
 
 
 subscriptions : Model -> Sub Msg
@@ -135,9 +136,9 @@ init =
         ( keyboardModel, keyboardCmd ) =
             Keyboard.Extra.init
     in
-        ( { tabs = [ "Tab 1", "Tab 2", "Tab 3", "Tab 4", "Tab 5", "Tab 6" ]
+        ( { tabs = [ "Elm", "Is", "A", "Nice", "Programming", "Language" ]
           , pinnedTabs = []
-          , selected = "Tab 1"
+          , selected = "Elm"
           , movingTab = Nothing
           , movingTabStyle = Animation.style []
           , tabMenu = Nothing
@@ -366,11 +367,14 @@ update msg model =
 boundDraggingTabMouse : Model -> Position -> DraggingTab -> DraggingTab
 boundDraggingTabMouse { pinnedTabs, tabs } pos draggingTab =
     let
+        numTabs =
+            List.length tabs
+
         rightMostX =
             rightMostMouseX draggingTab.isPinned pinnedTabs tabs
 
         boundedXy =
-            if pos.x < (calcTabWidth draggingTab.isPinned) / 2 then
+            if pos.x < (calcVarTabWidth draggingTab.isPinned numTabs) / 2 then
                 { pos | x = 0 }
             else if pos.x >= rightMostX then
                 { pos | x = rightMostX }
@@ -514,7 +518,7 @@ slidingTabAnimation : List String -> SlidingTab -> Model -> Model
 slidingTabAnimation tabs ({ start, isPinned, tabIndex } as slidingTab) model =
     let
         dragTabWidth =
-            calcTabWidth isPinned
+            calcVarTabWidth isPinned (List.length model.tabs)
 
         currentLeft =
             max 0 (start.x - (dragTabWidth / 2))
@@ -531,8 +535,11 @@ slidingTabAnimation tabs ({ start, isPinned, tabIndex } as slidingTab) model =
         insertIndex =
             newTabIndex isPinned insertPos numPinned
 
+        varTabWidth =
+            calcVarTabWidth False (List.length model.tabs)
+
         newTabOffset =
-            (toFloat (clamp 0 numPinned insertIndex) * pinnedTabWidth) + (toFloat (clamp 0 numTabs (insertIndex - numPinned)) * tabWidth)
+            (toFloat (clamp 0 numPinned insertIndex) * pinnedTabWidth) + (toFloat (clamp 0 numTabs (insertIndex - numPinned)) * varTabWidth)
 
         newDraggingTabStyle =
             Animation.interrupt
@@ -554,9 +561,12 @@ slidingTabAnimation tabs ({ start, isPinned, tabIndex } as slidingTab) model =
 pinPlaceholderAnimation : Bool -> Model -> Model
 pinPlaceholderAnimation isPinned model =
     let
+        numTabs =
+            List.length model.tabs
+
         newTargetPlaceholderStyle =
             Animation.interrupt
-                [ Animation.set [ Animation.width <| px <| calcTabWidth isPinned ]
+                [ Animation.set [ Animation.width <| px <| calcVarTabWidth isPinned numTabs ]
                 , Animation.to
                     [ Animation.width <| px 0 ]
                 ]
@@ -566,7 +576,7 @@ pinPlaceholderAnimation isPinned model =
             Animation.interrupt
                 [ Animation.set [ Animation.width <| px 0 ]
                 , Animation.to
-                    [ Animation.width <| px <| calcTabWidth (not isPinned) ]
+                    [ Animation.width <| px <| calcVarTabWidth (not isPinned) numTabs ]
                 ]
                 model.startingPlaceholderStyle
     in
@@ -687,11 +697,11 @@ view model =
                         Nothing
                     else
                         maybeTabByIndex tabIndex
-                            |> Maybe.map (viewDraggingTab model.movingTabStyle tab)
+                            |> Maybe.map (viewDraggingTab model tab)
 
                 Sliding tab ->
                     maybeTabByIndex tab.tabIndex
-                        |> Maybe.map (viewSlidingTab model.movingTabStyle tab)
+                        |> Maybe.map (viewSlidingTab model tab)
 
                 Pinning tab ->
                     maybeTabByIndex tab.tabIndex
@@ -705,14 +715,30 @@ view model =
             , model.tabMenu
                 |> Maybe.map viewTabMenu
                 |> Maybe.withDefault (text "")
+              -- , viewVarTabs model
             ]
+
+
+viewVarTabs model =
+    div [ class "var-tabs" ]
+        (List.map viewVarTab model.tabs)
+
+
+viewVarTab tab =
+    div [ class "var-tab" ]
+        [ div [ class "tab-logo" ] [ viewElmLogo ]
+        , div [ class "tab-info" ]
+            [ h4 [ class "tab-title" ] [ text tab ]
+            , p [ class "tab-subtitle" ] [ text "Elm" ]
+            ]
+        ]
 
 
 viewStartingPlaceholder : Bool -> Model -> Html Msg
 viewStartingPlaceholder startedPinned model =
     div
         ([ class "tab-placeholder"
-         , style [ ( "width", toPx <| calcTabWidth startedPinned ) ]
+         , style [ ( "width", toPx <| calcVarTabWidth startedPinned (List.length model.tabs) ) ]
          ]
             ++ Animation.render model.startingPlaceholderStyle
         )
@@ -734,7 +760,7 @@ viewPlaceholder : Bool -> Model -> Html Msg
 viewPlaceholder isPinned model =
     div
         [ class "tab-placeholder"
-        , style [ ( "width", toPx <| calcTabWidth isPinned ) ]
+        , style [ ( "width", toPx <| calcVarTabWidth isPinned (List.length model.tabs) ) ]
         ]
         []
 
@@ -799,7 +825,7 @@ viewTabs model =
                         Just <| viewDraggableTabsWithTabPlaceholder isPinned (insertPos current) tabIndex
     in
         div
-            [ class "tab-list"
+            [ class "var-tabs"
             , draggable "false"
             ]
             (model.movingTab
@@ -821,11 +847,11 @@ viewTab model index tab =
     in
         div
             [ classList
-                [ ( "tab", True )
+                [ ( "var-tab", True )
                 , ( "tab--selected", model.selected == tab )
                 , ( "tab--pinned", isPinned )
                 ]
-            , style [ ( "width", (toPx << calcTabWidth) isPinned ) ]
+            , style [ ( "width", (toPx << calcVarTabWidth isPinned) (List.length model.tabs) ) ]
             , contextmenu "tab-menu"
             , onMouseUp (SetActive tab)
             , onWithOptions "contextmenu" defaultPrevented <| Json.map (ToggleTabMenu index isPinned) Mouse.position
@@ -884,11 +910,11 @@ viewTabMenuItem pos menuItem =
             [ text <| tabMenuItemToString menuItem ]
 
 
-viewSlidingTab : Animation.Messenger.State Msg -> SlidingTab -> String -> Html Msg
-viewSlidingTab movingTabStyle { start, isPinned } tab =
+viewSlidingTab : Model -> SlidingTab -> String -> Html Msg
+viewSlidingTab model { start, isPinned } tab =
     let
         slidingTabWidth =
-            calcTabWidth isPinned
+            calcVarTabWidth isPinned (List.length model.tabs)
     in
         div
             ([ classList
@@ -902,7 +928,7 @@ viewSlidingTab movingTabStyle { start, isPinned } tab =
                 , ( "width", toPx slidingTabWidth )
                 ]
              ]
-                ++ Animation.render movingTabStyle
+                ++ Animation.render model.movingTabStyle
             )
             [ text tab ]
 
@@ -911,7 +937,7 @@ viewPinningTab : Model -> PinningTab -> Int -> String -> Html Msg
 viewPinningTab model { start, startedPinned } index tab =
     let
         movingTabWidth =
-            calcTabWidth startedPinned
+            calcVarTabWidth startedPinned (List.length model.tabs)
 
         tabOffset =
             tabPosition startedPinned index (List.length model.pinnedTabs)
@@ -933,11 +959,11 @@ viewPinningTab model { start, startedPinned } index tab =
             [ text tab ]
 
 
-viewDraggingTab : Animation.Messenger.State Msg -> DraggingTab -> String -> Html Msg
-viewDraggingTab movingTabStyle { start, current, isPinned } tab =
+viewDraggingTab : Model -> DraggingTab -> String -> Html Msg
+viewDraggingTab model { start, current, isPinned } tab =
     let
         draggingTabWidth =
-            calcTabWidth isPinned
+            calcVarTabWidth isPinned (List.length model.tabs)
 
         left =
             if current.x < (draggingTabWidth / 2) then
@@ -959,7 +985,7 @@ viewDraggingTab movingTabStyle { start, current, isPinned } tab =
                 , ( "width", toPx draggingTabWidth )
                 ]
              ]
-                ++ Animation.render movingTabStyle
+                ++ Animation.render model.movingTabStyle
             )
             [ text tab ]
 
@@ -996,7 +1022,7 @@ calcInsertPos xPos numPinned numTabs =
             floor <| clamp 0.0 (toFloat numPinned) (xPos / pinnedTabWidth)
 
         tabIndex =
-            floor <| clamp 0.0 (toFloat numTabs) ((xPos - posFromPinned) / tabWidth)
+            floor <| clamp 0.0 (toFloat numTabs) ((xPos - posFromPinned) / calcVarTabWidth False numTabs)
     in
         pinnedTabIndex + tabIndex
 
@@ -1009,12 +1035,30 @@ calcTabWidth isPinned =
         tabWidth
 
 
+calcVarTabWidth : Bool -> Int -> Float
+calcVarTabWidth isPinned numTabs =
+    let
+        totalTabWidth =
+            (toFloat numTabs * maxTabWidth)
+
+        varTabWidth =
+            if totalTabWidth > containerWidth then
+                clamp minTabWidth maxTabWidth (containerWidth / toFloat numTabs)
+            else
+                maxTabWidth
+    in
+        if isPinned then
+            pinnedTabWidth
+        else
+            varTabWidth
+
+
 rightMostMouseX : Bool -> List String -> List String -> Float
 rightMostMouseX isPinned pinnedTabs tabs =
     if isPinned then
         allTabsWidth pinnedTabs tabs - (pinnedTabWidth / 2)
     else
-        (allTabsWidth pinnedTabs tabs) - (tabWidth / 2)
+        (allTabsWidth pinnedTabs tabs) - (calcVarTabWidth False (List.length tabs) / 2)
 
 
 toPx : number -> String
@@ -1045,6 +1089,22 @@ toPosition { x, y } =
 -- CONSTANTS
 
 
+containerWidth =
+    910
+
+
+tabBasis =
+    0.2
+
+
+maxTabWidth =
+    202
+
+
+minTabWidth =
+    102
+
+
 tabWidth : Float
 tabWidth =
     102
@@ -1063,8 +1123,11 @@ allTabsWidth pinnedTabs tabs =
 
         numPinned =
             (toFloat << List.length) pinnedTabs
+
+        varTabWidth =
+            calcVarTabWidth False (List.length tabs)
     in
-        (pinnedTabWidth * numPinned) + (tabWidth * numTabs)
+        (pinnedTabWidth * numPinned) + (varTabWidth * numTabs)
 
 
 fastDrift : Animation.Interpolation

@@ -13,6 +13,7 @@
         "elm-lang/html": "2.0.0 <= v < 3.0.0",
         "elm-lang/keyboard": "1.0.1 <= v < 2.0.0",
         "elm-lang/mouse": "1.0.1 <= v < 2.0.0",
+        "elm-lang/svg": "2.0.0 <= v < 3.0.0",
         "mdgriffith/elm-style-animation": "3.3.0 <= v < 4.0.0",
         "ohanhi/keyboard-extra": "1.2.0 <= v < 2.0.0"
     },

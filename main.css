@@ -16,6 +16,49 @@ body {
   user-select: none;
 }
 
+.tab-logo {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 5px;
+}
+
+.tab-info {
+  display: flex;
+  flex-direction: column;
+  padding: 5px;
+  min-width: 50px;
+}
+
+.tab-title {
+  margin: 0;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+.tab-subtitle {
+  margin: 0;
+}
+
+.elm-logo {
+  width: 25px;
+  height: 25px;
+}
+
+.var-tabs {
+  display: flex;
+  user-select: none;
+  width: 910px;
+}
+
+.var-tab {
+  height: 50px;
+  border: 1px solid gray;
+  cursor: pointer;
+  display: flex;
+}
+
 .tab--selected {
   background-color: cyan;
 }
