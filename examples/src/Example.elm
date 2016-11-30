@@ -3,18 +3,20 @@ module Example exposing (..)
 import DraggableTabs
 import Html exposing (..)
 import Html.Events exposing (onClick)
+import Window
 
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
     Sub.batch
         [ Sub.map Tabs (DraggableTabs.subscriptions model.tabs)
+        , Window.resizes ResizeWindow
         ]
 
 
 type alias Model =
     { tabs : DraggableTabs.Model
-    , window : { width : Float, height : Float }
+    , window : Window.Size
     }
 
 
@@ -33,7 +35,7 @@ init =
 
 type Msg
     = Tabs DraggableTabs.Msg
-    | ResizeWindow ( Float, Float )
+    | ResizeWindow Window.Size
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -46,27 +48,25 @@ update msg model =
             in
                 ( { model | tabs = tabsState }, Cmd.map Tabs tabsCmds )
 
-        ResizeWindow xy ->
-            ( resizeWindow xy model, Cmd.none )
+        ResizeWindow size ->
+            ( resizeWindow size model, Cmd.none )
 
 
 tabsConfig model =
-    { containerWidth = model.window.width
+    { containerWidth = toFloat model.window.width
     , maxTabWidth = 202
     , minTabWidth = 102
     , pinnedTabWidth = 52
     }
 
 
-resizeWindow : ( Float, Float ) -> Model -> Model
-resizeWindow ( x, y ) model =
-    { model | window = { width = x, height = y } }
+resizeWindow : Window.Size -> Model -> Model
+resizeWindow size model =
+    { model | window = size }
 
 
 view : Model -> Html Msg
 view model =
     div []
         [ Html.map Tabs (DraggableTabs.view (tabsConfig model) model.tabs)
-        , button [ onClick <| ResizeWindow ( model.window.width * 0.95, model.window.height * 0.95 ) ]
-            [ text "resize" ]
         ]
