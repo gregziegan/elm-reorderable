@@ -1,0 +1,100 @@
+body {
+  margin: 0;
+}
+
+.tab--pinned {
+  justify-content: center;
+  align-items: center;
+}
+
+.tab-logo {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 5px;
+}
+
+.tab-info {
+  display: flex;
+  flex-direction: column;
+  padding: 5px;
+  min-width: 50px;
+}
+
+.tab-title {
+  margin: 0;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+.tab-subtitle {
+  margin: 0;
+  font-size: 11px;
+}
+
+.elm-logo {
+  width: 25px;
+  height: 25px;
+}
+
+.tab-list {
+  display: flex;
+  user-select: none;
+  width: 910px;
+}
+
+.tab {
+  height: 50px;
+  border: 1px solid gray;
+  cursor: pointer;
+  display: flex;
+}
+
+.tab--selected {
+  background-color: #F0AD00;
+}
+
+.moving-tab {
+  top: 0;
+  background-color: white;
+  position: absolute;
+  user-select: none;
+  cursor: pointer;
+  box-shadow: 8px 0 11px -4px rgba(0, 0, 0, 0.1), -8px 0 4px -4px rgba(0, 0, 0, 0.1);
+}
+
+.tab-placeholder {
+  background-color: #d8d8d8;
+}
+
+.tab-context-menu__backdrop {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100vw;
+  height: 100vh;
+}
+
+.tab-context-menu {
+  position: absolute;
+  z-index: 1;
+  background-color: white;
+}
+
+.tab-context-menu__list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  border: 1px solid gray;
+}
+
+.tab-context-menu__item {
+  padding: 2px;
+}
+
+.tab-context-menu__item:hover {
+  background-color: cyan;
+}
