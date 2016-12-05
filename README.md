@@ -1,5 +1,7 @@
 # elm-draggable-tabs
 
+> Note: this example only works because of some naive arithmetic. If you change the CSS rules that affect tab/container width, it won't work properly! Next up, solve this problem with some native JS. After some discussion in the community, we can talk about the possibility of a drag n' drop/reorder API
+
 How I built these in the beginning:
 https://www.youtube.com/playlist?list=PL8wLtAjUdVWCIR6Ms_ARTjrhFAvNXw9If
 
