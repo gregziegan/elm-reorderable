@@ -1,0 +1,84 @@
+<!doctype html>
+  <meta charset="utf-8">
+  <link rel="stylesheet" href="main.css" />
+
+  <body>
+    <div></div>
+    <script src="build/bundle.js"></script>
+    <script src="../lib/reorderable.js"></script>
+    <script>
+      var app = Elm.Main.embed(document.querySelector("div"));
+      app.ports.getFlexTabWidth.subscribe(function(tabIndex) {
+        setTimeout(function() {
+          var tab = getTabByIndex(tabIndex)
+          console.log(tab.offsetWidth)
+          app.ports.newTabWidth.send(tab.offsetWidth)
+        }, 16);
+      })
+
+      function getTabByIndex(tabIndex) {
+        return document.querySelector('[data-reorderable-index=\'' + tabIndex + '\']')
+      }
+
+      function hasClass(element, cls) {
+        return (' ' + element.className + ' ').indexOf(' ' + cls + ' ') > -1;
+      }
+
+      function isOverflowTab(tab) {
+        return hasClass(tab, 'overflow-tab');
+      }
+
+      var reorderableQuerySelector = "[data-reorderable-index]";
+      var dragAxis = 'x';
+      var lastMoveInfo;
+
+      function handleDragStart(dragInfo) {
+        var tab = getTabByIndex(dragInfo.sourceIndex);
+        dragAxis = isOverflowTab(tab) ? 'y' : 'x';
+        Reorderable.setDragAxis(dragAxis);
+        app.ports.dragStart.send(dragInfo);
+      }
+
+      function isFartherRightThanAllBounds(bounds, right) {
+        var maxR = Math.max(...bounds.map(bound => bound.right));
+        return maxR <= right;
+      }
+
+      function handleDragMove(dragInfo) {
+        var tab = getTabByIndex(dragInfo.sourceIndex);
+        var tabs = document.querySelectorAll(reorderableQuerySelector);
+        var bounds = dragInfo.placeholder.bounds;
+        if (bounds.top <= 0 && lastMoveInfo &&
+            dragInfo.cursor.y > lastMoveInfo.cursor.y &&
+            isFartherRightThanAllBounds(dragInfo.reorderableBounds, bounds.right)) {
+          dragAxis = 'y';
+          console.log('switch to y')
+          Reorderable.setDragAxis(dragAxis);
+        } else if (bounds.top <= 0 && lastMoveInfo &&
+                  dragInfo.cursor.x < lastMoveInfo.cursor.x &&
+                  isFartherRightThanAllBounds(dragInfo.reorderableBounds, bounds.right)) {
+          dragAxis = 'x';
+          console.log('switch to x')
+        }
+        lastMoveInfo = dragInfo;
+        app.ports.dragMove.send(dragInfo)
+      }
+
+      options = {
+        reorderableDataAttr: "reorderableIndex",
+        reorderableQuerySelector: reorderableQuerySelector,
+        placeholderId: "reorderable-placeholder",
+        on: {
+          dragStart: handleDragStart,
+          dragMove: handleDragMove,
+          dragStop: app.ports.dragStop.send
+        },
+        offsets: {
+          touch: {x: 0, y: 0},
+          mouse: {x: 0, y: 0}
+        }
+      }
+
+      Reorderable.setUpReorderableEvents(options);
+    </script>
+  </body>
