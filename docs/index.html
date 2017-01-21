@@ -1,8 +1,43 @@
 <!doctype html>
-  <link rel="stylesheet" href="demo.css" />
+  <meta charset="utf-8">
+  <link rel="stylesheet" href="main.css" />
 
   <body>
     <div></div>
     <script src="elm.js"></script>
-    <script>Elm.Main.embed(document.querySelector("div"));</script>
+    <script src="../lib/reorderable.js"></script>
+    <script>
+      var app = Elm.Main.embed(document.querySelector("div"));
+      app.ports.getFlexTabWidth.subscribe(function(tabIndex) {
+        setTimeout(function() {
+          var tab = getTabByIndex(tabIndex)
+          console.log(tab.offsetWidth)
+          app.ports.newTabWidth.send(tab.offsetWidth)
+        }, 16);
+      })
+
+      function getTabByIndex(tabIndex) {
+        return document.querySelector('[data-reorderable-index=\'' + tabIndex + '\']')
+      }
+
+      var reorderableQuerySelector = "[data-reorderable-index]";
+
+      options = {
+        reorderableDataAttr: "reorderableIndex",
+        reorderableQuerySelector: reorderableQuerySelector,
+        placeholderId: "reorderable-placeholder",
+        on: {
+          dragStart: app.ports.dragStart.send,
+          dragMove: app.ports.dragMove.send,
+          dragStop: app.ports.dragStop.send
+        },
+        initialAxis: 'x',
+        offsets: {
+          touch: {x: 0, y: 0},
+          mouse: {x: 0, y: 0}
+        }
+      }
+
+      Reorderable.setUpReorderableEvents(options);
+    </script>
   </body>

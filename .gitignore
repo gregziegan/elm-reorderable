@@ -1,1 +1,15 @@
-elm-stuff/
+# elm-package generated files
+elm-stuff
+
+# elm-repl generated files
+repl-temp-*
+
+# Dependency directories
+node_modules
+
+# Desktop Services Store on macOS
+.DS_Store
+
+build
+dist
+linter-elm-make.json
