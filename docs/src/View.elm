@@ -37,7 +37,7 @@ view model =
             [ viewTooltips model
             , div
                 [ class "tabs-container" ]
-                [ viewTabs model maybeDestIndex model.dragState.items
+                [ viewTabs model maybeDestIndex model.dragState.reorderedItems
                 , placeholder
                 , model.pinPlaceholder
                     |> Maybe.map (viewPinPlaceholder model)
