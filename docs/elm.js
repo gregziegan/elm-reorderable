@@ -24932,7 +24932,7 @@ var _user$project$View$view = function (model) {
 					},
 					{
 						ctor: '::',
-						_0: A3(_user$project$View$viewTabs, model, maybeDestIndex, model.dragState.items),
+						_0: A3(_user$project$View$viewTabs, model, maybeDestIndex, model.dragState.reorderedItems),
 						_1: {
 							ctor: '::',
 							_0: placeholder,
