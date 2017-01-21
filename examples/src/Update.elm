@@ -129,14 +129,8 @@ update msg model =
                 |> setShowingAnyMenuFalse
                 => []
 
-        ToggleOverflowMenu overflowArea ->
-            model
-                |> toggleOverflowMenu overflowArea
-                => []
-
         NewTabWidth newTabWidth ->
             { model | flexTabWidth = newTabWidth }
-                |> toggleMoreTab newTabWidth
                 => []
 
         WindowResize size ->
@@ -562,25 +556,3 @@ closeTabsToTheRightOfIndex tabIndex model =
                 |> Array.slice 0 (tabIndex + 1)
                 |> initDragState
     }
-
-
-toggleOverflowMenu : OverflowArea -> Model -> Model
-toggleOverflowMenu overflowArea model =
-    let
-        newOverflowArea =
-            case overflowArea of
-                MoreTab ->
-                    Expanded
-
-                Expanded ->
-                    MoreTab
-    in
-        { model | overflowArea = Just newOverflowArea }
-
-
-toggleMoreTab : Float -> Model -> Model
-toggleMoreTab newTabWidth model =
-    if newTabWidth <= 150 then
-        { model | overflowArea = Just MoreTab }
-    else
-        { model | overflowArea = Nothing }

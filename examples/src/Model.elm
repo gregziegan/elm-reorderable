@@ -22,8 +22,6 @@ type alias Model =
     , flexTabWidth : Float
     , pinnedTabWidth : Float
     , showingAnyMenu : Bool
-    , overflowArea : Maybe OverflowArea
-    , overflowMenuStyle : Animation.Messenger.State Msg
     }
 
 
@@ -62,6 +60,4 @@ initialModel =
         , flexTabWidth = 0
         , pinnedTabWidth = 60
         , showingAnyMenu = False
-        , overflowArea = Nothing
-        , overflowMenuStyle = Animation.style []
         }

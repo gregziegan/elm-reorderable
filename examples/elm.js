@@ -22807,9 +22807,6 @@ var _user$project$Messages$WindowResize = function (a) {
 var _user$project$Messages$NewTabWidth = function (a) {
 	return {ctor: 'NewTabWidth', _0: a};
 };
-var _user$project$Messages$ToggleOverflowMenu = function (a) {
-	return {ctor: 'ToggleOverflowMenu', _0: a};
-};
 var _user$project$Messages$CloseAllMenus = {ctor: 'CloseAllMenus'};
 var _user$project$Messages$CloseTabsToTheRightOfIndex = function (a) {
 	return {ctor: 'CloseTabsToTheRightOfIndex', _0: a};
@@ -22886,10 +22883,7 @@ var _user$project$Model$initialModel = function () {
 		dragState: _user$project$Model$initDragState(_user$project$Model$someTabs),
 		flexTabWidth: 0,
 		pinnedTabWidth: 60,
-		showingAnyMenu: false,
-		overflowArea: _elm_lang$core$Maybe$Nothing,
-		overflowMenuStyle: _mdgriffith$elm_style_animation$Animation$style(
-			{ctor: '[]'})
+		showingAnyMenu: false
 	};
 }();
 var _user$project$Model$Model = function (a) {
@@ -22904,11 +22898,7 @@ var _user$project$Model$Model = function (a) {
 									return function (j) {
 										return function (k) {
 											return function (l) {
-												return function (m) {
-													return function (n) {
-														return {selected: a, pinPlaceholder: b, pinPlaceholderStyle: c, placeholderAnimationStyle: d, tabMenu: e, keyboardModel: f, pinDestinationStyle: g, pinStartBackdropStyle: h, dragState: i, flexTabWidth: j, pinnedTabWidth: k, showingAnyMenu: l, overflowArea: m, overflowMenuStyle: n};
-													};
-												};
+												return {selected: a, pinPlaceholder: b, pinPlaceholderStyle: c, placeholderAnimationStyle: d, tabMenu: e, keyboardModel: f, pinDestinationStyle: g, pinStartBackdropStyle: h, dragState: i, flexTabWidth: j, pinnedTabWidth: k, showingAnyMenu: l};
 											};
 										};
 									};
@@ -22921,6 +22911,12 @@ var _user$project$Model$Model = function (a) {
 		};
 	};
 };
+
+var _user$project$Ports$getFlexTabWidth = _elm_lang$core$Native_Platform.outgoingPort(
+	'getFlexTabWidth',
+	function (v) {
+		return v;
+	});
 
 var _user$project$Subscriptions$newTabWidth = _elm_lang$core$Native_Platform.incomingPort('newTabWidth', _elm_lang$core$Json_Decode$float);
 var _user$project$Subscriptions$subscriptions = function (model) {
@@ -22969,12 +22965,6 @@ var _user$project$Subscriptions$subscriptions = function (model) {
 			}
 		});
 };
-
-var _user$project$Ports$getFlexTabWidth = _elm_lang$core$Native_Platform.outgoingPort(
-	'getFlexTabWidth',
-	function (v) {
-		return v;
-	});
 
 var _user$project$Util_ops = _user$project$Util_ops || {};
 _user$project$Util_ops['=>'] = F2(
@@ -23030,32 +23020,6 @@ var _user$project$Util$toPx = function (num) {
 		'px');
 };
 
-var _user$project$Update$toggleMoreTab = F2(
-	function (newTabWidth, model) {
-		return (_elm_lang$core$Native_Utils.cmp(newTabWidth, 150) < 1) ? _elm_lang$core$Native_Utils.update(
-			model,
-			{
-				overflowArea: _elm_lang$core$Maybe$Just(_user$project$Types$MoreTab)
-			}) : _elm_lang$core$Native_Utils.update(
-			model,
-			{overflowArea: _elm_lang$core$Maybe$Nothing});
-	});
-var _user$project$Update$toggleOverflowMenu = F2(
-	function (overflowArea, model) {
-		var newOverflowArea = function () {
-			var _p0 = overflowArea;
-			if (_p0.ctor === 'MoreTab') {
-				return _user$project$Types$Expanded;
-			} else {
-				return _user$project$Types$MoreTab;
-			}
-		}();
-		return _elm_lang$core$Native_Utils.update(
-			model,
-			{
-				overflowArea: _elm_lang$core$Maybe$Just(newOverflowArea)
-			});
-	});
 var _user$project$Update$closeTabsToTheRightOfIndex = F2(
 	function (tabIndex, model) {
 		return _elm_lang$core$Native_Utils.update(
@@ -23099,9 +23063,9 @@ var _user$project$Update$closeTab = F2(
 			});
 	});
 var _user$project$Update$startUnPinTabAnimation = F2(
-	function (_p1, model) {
+	function (_p0, model) {
+		var _p1 = _p0;
 		var _p2 = _p1;
-		var _p3 = _p2;
 		var newStartingPlaceholderStyle = A2(
 			_mdgriffith$elm_style_animation$Animation$interrupt,
 			{
@@ -23162,7 +23126,7 @@ var _user$project$Update$startUnPinTabAnimation = F2(
 					{
 						ctor: '::',
 						_0: _mdgriffith$elm_style_animation$Animation$left(
-							_mdgriffith$elm_style_animation$Animation$px(_p2.start.x)),
+							_mdgriffith$elm_style_animation$Animation$px(_p1.start.x)),
 						_1: {
 							ctor: '::',
 							_0: _mdgriffith$elm_style_animation$Animation$width(
@@ -23178,18 +23142,18 @@ var _user$project$Update$startUnPinTabAnimation = F2(
 						{
 							ctor: '::',
 							_0: _mdgriffith$elm_style_animation$Animation$left(
-								_mdgriffith$elm_style_animation$Animation$px(_p2.end.x)),
+								_mdgriffith$elm_style_animation$Animation$px(_p1.end.x)),
 							_1: {
 								ctor: '::',
 								_0: _mdgriffith$elm_style_animation$Animation$width(
-									_mdgriffith$elm_style_animation$Animation$px(_p2.endWidth)),
+									_mdgriffith$elm_style_animation$Animation$px(_p1.endWidth)),
 								_1: {ctor: '[]'}
 							}
 						}),
 					_1: {
 						ctor: '::',
 						_0: _mdgriffith$elm_style_animation$Animation_Messenger$send(
-							_user$project$Messages$FinishUnpinningTab(_p3)),
+							_user$project$Messages$FinishUnpinningTab(_p2)),
 						_1: {ctor: '[]'}
 					}
 				}
@@ -23202,7 +23166,7 @@ var _user$project$Update$startUnPinTabAnimation = F2(
 			{
 				pinPlaceholderStyle: newPinPlaceholderStyle,
 				pinPlaceholder: _elm_lang$core$Maybe$Just(
-					_user$project$Types$UnPinning(_p3)),
+					_user$project$Types$UnPinning(_p2)),
 				pinDestinationStyle: newStartingPlaceholderStyle,
 				pinStartBackdropStyle: newTargetPlaceholderStyle
 			});
@@ -23254,10 +23218,10 @@ var _user$project$Update$unpinTab = F3(
 				A2(_Skinney$elm_array_exploration$Array_Hamt$get, oldTabIndex, model.dragState.items)));
 	});
 var _user$project$Update$startPinTabAnimation = F2(
-	function (_p4, model) {
+	function (_p3, model) {
+		var _p4 = _p3;
+		var _p6 = _p4.startWidth;
 		var _p5 = _p4;
-		var _p7 = _p5.startWidth;
-		var _p6 = _p5;
 		var newStartingPlaceholderStyle = A2(
 			_mdgriffith$elm_style_animation$Animation$interrupt,
 			{
@@ -23292,7 +23256,7 @@ var _user$project$Update$startPinTabAnimation = F2(
 					{
 						ctor: '::',
 						_0: _mdgriffith$elm_style_animation$Animation$width(
-							_mdgriffith$elm_style_animation$Animation$px(_p7)),
+							_mdgriffith$elm_style_animation$Animation$px(_p6)),
 						_1: {ctor: '[]'}
 					}),
 				_1: {
@@ -23318,11 +23282,11 @@ var _user$project$Update$startPinTabAnimation = F2(
 					{
 						ctor: '::',
 						_0: _mdgriffith$elm_style_animation$Animation$left(
-							_mdgriffith$elm_style_animation$Animation$px(_p5.start.x)),
+							_mdgriffith$elm_style_animation$Animation$px(_p4.start.x)),
 						_1: {
 							ctor: '::',
 							_0: _mdgriffith$elm_style_animation$Animation$width(
-								_mdgriffith$elm_style_animation$Animation$px(_p7)),
+								_mdgriffith$elm_style_animation$Animation$px(_p6)),
 							_1: {ctor: '[]'}
 						}
 					}),
@@ -23334,7 +23298,7 @@ var _user$project$Update$startPinTabAnimation = F2(
 						{
 							ctor: '::',
 							_0: _mdgriffith$elm_style_animation$Animation$left(
-								_mdgriffith$elm_style_animation$Animation$px(_p5.end.x)),
+								_mdgriffith$elm_style_animation$Animation$px(_p4.end.x)),
 							_1: {
 								ctor: '::',
 								_0: _mdgriffith$elm_style_animation$Animation$width(
@@ -23345,7 +23309,7 @@ var _user$project$Update$startPinTabAnimation = F2(
 					_1: {
 						ctor: '::',
 						_0: _mdgriffith$elm_style_animation$Animation_Messenger$send(
-							_user$project$Messages$FinishPinningTab(_p6)),
+							_user$project$Messages$FinishPinningTab(_p5)),
 						_1: {ctor: '[]'}
 					}
 				}
@@ -23355,9 +23319,9 @@ var _user$project$Update$startPinTabAnimation = F2(
 			model,
 			{
 				pinPlaceholderStyle: newPinPlaceholderStyle,
-				flexTabWidth: _p7,
+				flexTabWidth: _p6,
 				pinPlaceholder: _elm_lang$core$Maybe$Just(
-					_user$project$Types$Pinning(_p6)),
+					_user$project$Types$Pinning(_p5)),
 				pinDestinationStyle: newStartingPlaceholderStyle,
 				pinStartBackdropStyle: newTargetPlaceholderStyle
 			});
@@ -23442,31 +23406,31 @@ var _user$project$Update$closeAllMenus = function (model) {
 		{tabMenu: _elm_lang$core$Maybe$Nothing, showingAnyMenu: false});
 };
 var _user$project$Update$initUnPinningInfo = F4(
-	function (tabIndex, tab, _p8, model) {
-		var _p9 = _p8;
-		var _p11 = _p9.top;
-		var _p10 = _p9.left;
+	function (tabIndex, tab, _p7, model) {
+		var _p8 = _p7;
+		var _p10 = _p8.top;
+		var _p9 = _p8.left;
 		var numPinned = _user$project$Util$getNumPinned(model.dragState.items);
 		var numPinnedTabsToTravel = (numPinned - tabIndex) - 1;
 		var newTabPosition = A2(
 			_user$project$Reorderable_State$Point,
-			_p10 + (_elm_lang$core$Basics$toFloat(numPinnedTabsToTravel) * model.pinnedTabWidth),
-			_p11);
-		var tabPosition = A2(_user$project$Reorderable_State$Point, _p10, _p11);
+			_p9 + (_elm_lang$core$Basics$toFloat(numPinnedTabsToTravel) * model.pinnedTabWidth),
+			_p10);
+		var tabPosition = A2(_user$project$Reorderable_State$Point, _p9, _p10);
 		return {start: tabPosition, end: newTabPosition, endWidth: model.flexTabWidth, oldTabIndex: tabIndex, newTabIndex: numPinned, tab: tab};
 	});
 var _user$project$Update$initPinningInfo = F4(
-	function (tabIndex, tab, _p12, model) {
-		var _p13 = _p12;
-		var _p16 = _p13.width;
-		var _p15 = _p13.top;
-		var _p14 = _p13.left;
+	function (tabIndex, tab, _p11, model) {
+		var _p12 = _p11;
+		var _p15 = _p12.width;
+		var _p14 = _p12.top;
+		var _p13 = _p12.left;
 		var newTabIndex = _user$project$Util$getNumPinned(model.dragState.items);
 		var numUnPinned = tabIndex - newTabIndex;
-		var pinDisplacement = _elm_lang$core$Basics$toFloat(numUnPinned) * _p16;
-		var newTabPosition = A2(_user$project$Reorderable_State$Point, _p14 - pinDisplacement, _p15);
-		var tabPosition = A2(_user$project$Reorderable_State$Point, _p14, _p15);
-		return {start: tabPosition, end: newTabPosition, startWidth: _p16, oldTabIndex: tabIndex, newTabIndex: newTabIndex, tab: tab};
+		var pinDisplacement = _elm_lang$core$Basics$toFloat(numUnPinned) * _p15;
+		var newTabPosition = A2(_user$project$Reorderable_State$Point, _p13 - pinDisplacement, _p14);
+		var tabPosition = A2(_user$project$Reorderable_State$Point, _p13, _p14);
+		return {start: tabPosition, end: newTabPosition, startWidth: _p15, oldTabIndex: tabIndex, newTabIndex: newTabIndex, tab: tab};
 	});
 var _user$project$Update$setShowingAnyMenuFalse = function (model) {
 	return _elm_lang$core$Native_Utils.update(
@@ -23479,13 +23443,13 @@ var _user$project$Update$setShowingAnyMenuTrue = function (model) {
 		{showingAnyMenu: true});
 };
 var _user$project$Update$toggleTabMenuHelp = F4(
-	function (model, tabIndex, _p17, tab) {
-		var _p18 = _p17;
+	function (model, tabIndex, _p16, tab) {
+		var _p17 = _p16;
 		return _elm_lang$core$Native_Utils.update(
 			model,
 			{
 				tabMenu: _elm_lang$core$Native_Utils.eq(model.tabMenu, _elm_lang$core$Maybe$Nothing) ? _elm_lang$core$Maybe$Just(
-					{tabIndex: tabIndex, position: _p18.position, tabRect: _p18.rect, tab: tab}) : _elm_lang$core$Maybe$Nothing
+					{tabIndex: tabIndex, position: _p17.position, tabRect: _p17.rect, tab: tab}) : _elm_lang$core$Maybe$Nothing
 			});
 	});
 var _user$project$Update$toggleTabMenu = F3(
@@ -23505,8 +23469,8 @@ var _user$project$Update$setActiveTab = F2(
 			{selected: tab});
 	});
 var _user$project$Update$startSlidingTabAnimation = F2(
-	function (_p19, model) {
-		var _p20 = _p19;
+	function (_p18, model) {
+		var _p19 = _p18;
 		var placeholderAnimationStyle = A2(
 			_mdgriffith$elm_style_animation$Animation$interrupt,
 			{
@@ -23515,7 +23479,7 @@ var _user$project$Update$startSlidingTabAnimation = F2(
 					{
 						ctor: '::',
 						_0: _mdgriffith$elm_style_animation$Animation$left(
-							_mdgriffith$elm_style_animation$Animation$px(_p20.start.x)),
+							_mdgriffith$elm_style_animation$Animation$px(_p19.start.x)),
 						_1: {ctor: '[]'}
 					}),
 				_1: {
@@ -23526,13 +23490,13 @@ var _user$project$Update$startSlidingTabAnimation = F2(
 						{
 							ctor: '::',
 							_0: _mdgriffith$elm_style_animation$Animation$left(
-								_mdgriffith$elm_style_animation$Animation$px(_p20.end.x)),
+								_mdgriffith$elm_style_animation$Animation$px(_p19.end.x)),
 							_1: {ctor: '[]'}
 						}),
 					_1: {
 						ctor: '::',
 						_0: _mdgriffith$elm_style_animation$Animation_Messenger$send(
-							_user$project$Messages$FinishSlidingTab(_p20)),
+							_user$project$Messages$FinishSlidingTab(_p19)),
 						_1: {ctor: '[]'}
 					}
 				}
@@ -23543,14 +23507,14 @@ var _user$project$Update$startSlidingTabAnimation = F2(
 			{placeholderAnimationStyle: placeholderAnimationStyle});
 	});
 var _user$project$Update$slideTabIntoPreviewHelp = F4(
-	function (model, placeholderBounds, reorderableBounds, _p21) {
-		var _p22 = _p21;
-		var _p23 = _p22.draggable;
+	function (model, placeholderBounds, reorderableBounds, _p20) {
+		var _p21 = _p20;
+		var _p22 = _p21.draggable;
 		var start = A2(_user$project$Reorderable_State$Point, placeholderBounds.left, placeholderBounds.top);
 		var maybeDestIndex = A2(_user$project$Reorderable_Update$getMostOverlappingBounds, placeholderBounds, reorderableBounds);
 		var destTabIndex = A4(
 			_user$project$Update$getDestForPinnableTabs,
-			_p23,
+			_p22,
 			model.dragState.items,
 			reorderableBounds,
 			A2(_elm_lang$core$Maybe$map, _elm_lang$core$Tuple$first, maybeDestIndex));
@@ -23562,7 +23526,7 @@ var _user$project$Update$slideTabIntoPreviewHelp = F4(
 		var end = A2(_user$project$Reorderable_State$Point, destPreviewBounds.left, destPreviewBounds.top);
 		return A2(
 			_user$project$Update$startSlidingTabAnimation,
-			{start: start, end: end, sourceTabIndex: _p22.sourceIndex, destTabIndex: destTabIndex, tab: _p23},
+			{start: start, end: end, sourceTabIndex: _p21.sourceIndex, destTabIndex: destTabIndex, tab: _p22},
 			model);
 	});
 var _user$project$Update$slideTabIntoPreview = F3(
@@ -23577,30 +23541,30 @@ var _user$project$Update$slideTabIntoPreview = F3(
 	});
 var _user$project$Update$updateDrag = F2(
 	function (dragMsg, model) {
-		var _p24 = A2(_user$project$Reorderable_Update$update, dragMsg, model.dragState);
-		if (_p24.ctor === 'Ok') {
-			var _p26 = _p24._0._0;
-			var _p25 = dragMsg;
-			if (_p25.ctor === 'DragHold') {
+		var _p23 = A2(_user$project$Reorderable_Update$update, dragMsg, model.dragState);
+		if (_p23.ctor === 'Ok') {
+			var _p25 = _p23._0._0;
+			var _p24 = dragMsg;
+			if (_p24.ctor === 'DragHold') {
 				return A2(
 					_user$project$Util_ops['=>'],
 					A3(
 						_user$project$Update$slideTabIntoPreview,
-						_p25._0.placeholder.bounds,
-						_p25._0.reorderableBounds,
+						_p24._0.placeholder.bounds,
+						_p24._0.reorderableBounds,
 						_elm_lang$core$Native_Utils.update(
 							model,
-							{dragState: _p26})),
+							{dragState: _p25})),
 					{ctor: '[]'});
 			} else {
 				return A2(
 					_user$project$Util_ops['=>'],
 					_elm_lang$core$Native_Utils.update(
 						model,
-						{dragState: _p26}),
+						{dragState: _p25}),
 					{
 						ctor: '::',
-						_0: A2(_elm_lang$core$Platform_Cmd$map, _user$project$Messages$DragMsg, _p24._0._1),
+						_0: A2(_elm_lang$core$Platform_Cmd$map, _user$project$Messages$DragMsg, _p23._0._1),
 						_1: {ctor: '[]'}
 					});
 			}
@@ -23613,22 +23577,22 @@ var _user$project$Update$updateDrag = F2(
 	});
 var _user$project$Update$update = F2(
 	function (msg, model) {
-		var _p27 = msg;
-		switch (_p27.ctor) {
+		var _p26 = msg;
+		switch (_p26.ctor) {
 			case 'AnimateMessenger':
-				var _p32 = _p27._0;
-				var _p28 = A2(_mdgriffith$elm_style_animation$Animation_Messenger$update, _p32, model.pinStartBackdropStyle);
-				var pinStartBackdropStyle = _p28._0;
-				var cmdsStartingPreview = _p28._1;
-				var _p29 = A2(_mdgriffith$elm_style_animation$Animation_Messenger$update, _p32, model.pinDestinationStyle);
-				var pinDestinationStyle = _p29._0;
-				var cmdsTargetPreview = _p29._1;
-				var _p30 = A2(_mdgriffith$elm_style_animation$Animation_Messenger$update, _p32, model.pinPlaceholderStyle);
-				var pinPlaceholderStyle = _p30._0;
-				var cmdsMoving = _p30._1;
-				var _p31 = A2(_mdgriffith$elm_style_animation$Animation_Messenger$update, _p32, model.placeholderAnimationStyle);
-				var placeholderAnimationStyle = _p31._0;
-				var cmdsPlaceholder = _p31._1;
+				var _p31 = _p26._0;
+				var _p27 = A2(_mdgriffith$elm_style_animation$Animation_Messenger$update, _p31, model.pinStartBackdropStyle);
+				var pinStartBackdropStyle = _p27._0;
+				var cmdsStartingPreview = _p27._1;
+				var _p28 = A2(_mdgriffith$elm_style_animation$Animation_Messenger$update, _p31, model.pinDestinationStyle);
+				var pinDestinationStyle = _p28._0;
+				var cmdsTargetPreview = _p28._1;
+				var _p29 = A2(_mdgriffith$elm_style_animation$Animation_Messenger$update, _p31, model.pinPlaceholderStyle);
+				var pinPlaceholderStyle = _p29._0;
+				var cmdsMoving = _p29._1;
+				var _p30 = A2(_mdgriffith$elm_style_animation$Animation_Messenger$update, _p31, model.placeholderAnimationStyle);
+				var placeholderAnimationStyle = _p30._0;
+				var cmdsPlaceholder = _p30._1;
 				var cmds = {
 					ctor: '::',
 					_0: cmdsMoving,
@@ -23653,9 +23617,9 @@ var _user$project$Update$update = F2(
 						{pinPlaceholderStyle: pinPlaceholderStyle, placeholderAnimationStyle: placeholderAnimationStyle, pinDestinationStyle: pinDestinationStyle, pinStartBackdropStyle: pinStartBackdropStyle}),
 					cmds);
 			case 'KeyboardExtraMsg':
-				var _p33 = A2(_ohanhi$keyboard_extra$Keyboard_Extra$update, _p27._0, model.keyboardModel);
-				var keyboardModel = _p33._0;
-				var keyboardCmd = _p33._1;
+				var _p32 = A2(_ohanhi$keyboard_extra$Keyboard_Extra$update, _p26._0, model.keyboardModel);
+				var keyboardModel = _p32._0;
+				var keyboardCmd = _p32._1;
 				var escapeIsPressed = A2(_ohanhi$keyboard_extra$Keyboard_Extra$isPressed, _ohanhi$keyboard_extra$Keyboard_Extra$Escape, keyboardModel);
 				return A2(
 					_user$project$Util_ops['=>'],
@@ -23670,9 +23634,9 @@ var _user$project$Update$update = F2(
 						_1: {ctor: '[]'}
 					});
 			case 'DragMsg':
-				return A2(_user$project$Update$updateDrag, _p27._0, model);
+				return A2(_user$project$Update$updateDrag, _p26._0, model);
 			case 'FinishSlidingTab':
-				var newTabs = A3(_user$project$Reorderable_Update$dropAndShift, _p27._0.sourceTabIndex, _p27._0.destTabIndex, model.dragState.items);
+				var newTabs = A3(_user$project$Reorderable_Update$dropAndShift, _p26._0.sourceTabIndex, _p26._0.destTabIndex, model.dragState.items);
 				return A2(
 					_user$project$Util_ops['=>'],
 					_elm_lang$core$Native_Utils.update(
@@ -23686,13 +23650,13 @@ var _user$project$Update$update = F2(
 			case 'SetActive':
 				return A2(
 					_user$project$Util_ops['=>'],
-					A2(_user$project$Update$setActiveTab, _p27._0, model),
+					A2(_user$project$Update$setActiveTab, _p26._0, model),
 					{ctor: '[]'});
 			case 'ToggleTabMenu':
 				return A2(
 					_user$project$Util_ops['=>'],
 					_user$project$Update$setShowingAnyMenuTrue(
-						A3(_user$project$Update$toggleTabMenu, _p27._0, _p27._1, model)),
+						A3(_user$project$Update$toggleTabMenu, _p26._0, _p26._1, model)),
 					{ctor: '[]'});
 			case 'PinTabAtIndex':
 				return A2(
@@ -23700,14 +23664,38 @@ var _user$project$Update$update = F2(
 					_user$project$Update$closeAllMenus(
 						A2(
 							_user$project$Update$startPinTabAnimation,
-							A4(_user$project$Update$initPinningInfo, _p27._0, _p27._1, _p27._2, model),
+							A4(_user$project$Update$initPinningInfo, _p26._0, _p26._1, _p26._2, model),
 							model)),
 					{ctor: '[]'});
 			case 'FinishPinningTab':
-				var _p34 = _p27._0.oldTabIndex;
+				var _p33 = _p26._0.oldTabIndex;
 				return A2(
 					_user$project$Util_ops['=>'],
-					A2(_user$project$Update$pinTab, _p34, model),
+					A2(_user$project$Update$pinTab, _p33, model),
+					{
+						ctor: '::',
+						_0: _user$project$Ports$getFlexTabWidth(
+							A3(
+								_elm_lang$core$Basics$clamp,
+								_p33,
+								_Skinney$elm_array_exploration$Array_Hamt$length(model.dragState.items) - 1,
+								_p33 + 1)),
+						_1: {ctor: '[]'}
+					});
+			case 'UnpinTabAtIndex':
+				return A2(
+					_user$project$Util_ops['=>'],
+					_user$project$Update$closeAllMenus(
+						A2(
+							_user$project$Update$startUnPinTabAnimation,
+							A4(_user$project$Update$initUnPinningInfo, _p26._0, _p26._1, _p26._2, model),
+							model)),
+					{ctor: '[]'});
+			case 'FinishUnpinningTab':
+				var _p34 = _p26._0.oldTabIndex;
+				return A2(
+					_user$project$Util_ops['=>'],
+					A3(_user$project$Update$unpinTab, _p34, _p26._0.newTabIndex, model),
 					{
 						ctor: '::',
 						_0: _user$project$Ports$getFlexTabWidth(
@@ -23718,36 +23706,12 @@ var _user$project$Update$update = F2(
 								_p34 + 1)),
 						_1: {ctor: '[]'}
 					});
-			case 'UnpinTabAtIndex':
-				return A2(
-					_user$project$Util_ops['=>'],
-					_user$project$Update$closeAllMenus(
-						A2(
-							_user$project$Update$startUnPinTabAnimation,
-							A4(_user$project$Update$initUnPinningInfo, _p27._0, _p27._1, _p27._2, model),
-							model)),
-					{ctor: '[]'});
-			case 'FinishUnpinningTab':
-				var _p35 = _p27._0.oldTabIndex;
-				return A2(
-					_user$project$Util_ops['=>'],
-					A3(_user$project$Update$unpinTab, _p35, _p27._0.newTabIndex, model),
-					{
-						ctor: '::',
-						_0: _user$project$Ports$getFlexTabWidth(
-							A3(
-								_elm_lang$core$Basics$clamp,
-								_p35,
-								_Skinney$elm_array_exploration$Array_Hamt$length(model.dragState.items) - 1,
-								_p35 + 1)),
-						_1: {ctor: '[]'}
-					});
 			case 'CloseTabAtIndex':
-				var _p36 = _p27._0;
+				var _p35 = _p26._0;
 				return A2(
 					_user$project$Util_ops['=>'],
 					_user$project$Update$closeAllMenus(
-						A2(_user$project$Update$closeTab, _p36, model)),
+						A2(_user$project$Update$closeTab, _p35, model)),
 					(_elm_lang$core$Native_Utils.cmp(
 						_Skinney$elm_array_exploration$Array_Hamt$length(model.dragState.items),
 						1) > 0) ? {
@@ -23757,28 +23721,28 @@ var _user$project$Update$update = F2(
 								_elm_lang$core$Basics$clamp,
 								0,
 								_Skinney$elm_array_exploration$Array_Hamt$length(model.dragState.items) - 2,
-								_p36)),
+								_p35)),
 						_1: {ctor: '[]'}
 					} : {ctor: '[]'});
 			case 'CloseTabsOtherThanIndex':
 				return A2(
 					_user$project$Util_ops['=>'],
 					_user$project$Update$closeAllMenus(
-						A2(_user$project$Update$closeTabsOtherThanIndex, _p27._0, model)),
+						A2(_user$project$Update$closeTabsOtherThanIndex, _p26._0, model)),
 					{
 						ctor: '::',
 						_0: _user$project$Ports$getFlexTabWidth(0),
 						_1: {ctor: '[]'}
 					});
 			case 'CloseTabsToTheRightOfIndex':
-				var _p37 = _p27._0;
+				var _p36 = _p26._0;
 				return A2(
 					_user$project$Util_ops['=>'],
 					_user$project$Update$closeAllMenus(
-						A2(_user$project$Update$closeTabsToTheRightOfIndex, _p37, model)),
+						A2(_user$project$Update$closeTabsToTheRightOfIndex, _p36, model)),
 					{
 						ctor: '::',
-						_0: _user$project$Ports$getFlexTabWidth(_p37),
+						_0: _user$project$Ports$getFlexTabWidth(_p36),
 						_1: {ctor: '[]'}
 					});
 			case 'CloseAllMenus':
@@ -23787,21 +23751,12 @@ var _user$project$Update$update = F2(
 					_user$project$Update$setShowingAnyMenuFalse(
 						_user$project$Update$closeAllMenus(model)),
 					{ctor: '[]'});
-			case 'ToggleOverflowMenu':
-				return A2(
-					_user$project$Util_ops['=>'],
-					A2(_user$project$Update$toggleOverflowMenu, _p27._0, model),
-					{ctor: '[]'});
 			case 'NewTabWidth':
-				var _p38 = _p27._0;
 				return A2(
 					_user$project$Util_ops['=>'],
-					A2(
-						_user$project$Update$toggleMoreTab,
-						_p38,
-						_elm_lang$core$Native_Utils.update(
-							model,
-							{flexTabWidth: _p38})),
+					_elm_lang$core$Native_Utils.update(
+						model,
+						{flexTabWidth: _p26._0}),
 					{ctor: '[]'});
 			default:
 				return A2(
@@ -24916,366 +24871,8 @@ var _user$project$View$viewNonPlaceholderTab = F4(
 			maybeDestIndex,
 			index);
 	});
-var _user$project$View$viewMoreTab = function (overflowArea) {
-	return A2(
-		_elm_lang$html$Html$button,
-		{
-			ctor: '::',
-			_0: _elm_lang$html$Html_Attributes$class('more-tab'),
-			_1: {
-				ctor: '::',
-				_0: _elm_lang$html$Html_Events$onClick(
-					_user$project$Messages$ToggleOverflowMenu(overflowArea)),
-				_1: {ctor: '[]'}
-			}
-		},
-		{
-			ctor: '::',
-			_0: A2(
-				_elm_lang$html$Html$div,
-				{
-					ctor: '::',
-					_0: _elm_lang$html$Html_Attributes$class('more-tab-caret'),
-					_1: {ctor: '[]'}
-				},
-				{
-					ctor: '::',
-					_0: _user$project$Svgs$viewDownCaret,
-					_1: {ctor: '[]'}
-				}),
-			_1: {
-				ctor: '::',
-				_0: _elm_lang$html$Html$text('More'),
-				_1: {ctor: '[]'}
-			}
-		});
-};
-var _user$project$View$viewOverflowTab = F5(
-	function (reorderable, model, maybeDestIndex, index, tab) {
-		var _p23 = function () {
-			var _p24 = reorderable;
-			if (_p24.ctor === 'NonPlaceholderReorderable') {
-				var _p26 = _p24._0;
-				var reorderItem = _elm_lang$core$Native_Utils.eq(
-					maybeDestIndex,
-					_elm_lang$core$Maybe$Just(index)) ? _user$project$Types$DropPreview : _user$project$Types$ReorderableTab;
-				var styles = _elm_lang$core$List$concat(
-					{
-						ctor: '::',
-						_0: function () {
-							var _p25 = reorderItem;
-							if (_p25.ctor === 'DropPreview') {
-								return {
-									ctor: '::',
-									_0: {ctor: '_Tuple2', _0: 'visibility', _1: 'hidden'},
-									_1: {ctor: '[]'}
-								};
-							} else {
-								return {ctor: '[]'};
-							}
-						}(),
-						_1: {
-							ctor: '::',
-							_0: _p26.isPinned ? {
-								ctor: '::',
-								_0: {
-									ctor: '_Tuple2',
-									_0: 'width',
-									_1: _user$project$Util$toPx(model.pinnedTabWidth)
-								},
-								_1: {ctor: '[]'}
-							} : {
-								ctor: '::',
-								_0: {
-									ctor: '_Tuple2',
-									_0: 'width',
-									_1: _user$project$Util$toPx(model.flexTabWidth)
-								},
-								_1: {ctor: '[]'}
-							},
-							_1: {ctor: '[]'}
-						}
-					});
-				return {
-					ctor: '_Tuple4',
-					_0: _p26,
-					_1: {
-						ctor: '::',
-						_0: _elm_lang$html$Html_Attributes$class('draggable'),
-						_1: {
-							ctor: '::',
-							_0: _elm_lang$html$Html_Attributes$classList(
-								{
-									ctor: '::',
-									_0: {ctor: '_Tuple2', _0: 'overflow-tab', _1: !_p26.isPinned},
-									_1: {
-										ctor: '::',
-										_0: {
-											ctor: '_Tuple2',
-											_0: 'tab--selected',
-											_1: _elm_lang$core$Native_Utils.eq(model.selected.id, _p26.id)
-										},
-										_1: {
-											ctor: '::',
-											_0: {ctor: '_Tuple2', _0: 'tab--pinned', _1: _p26.isPinned},
-											_1: {
-												ctor: '::',
-												_0: {
-													ctor: '_Tuple2',
-													_0: A2(
-														_elm_lang$core$Basics_ops['++'],
-														'tab-id-',
-														_elm_lang$core$Basics$toString(_p26.id)),
-													_1: true
-												},
-												_1: {ctor: '[]'}
-											}
-										}
-									}
-								}),
-							_1: {
-								ctor: '::',
-								_0: _elm_lang$html$Html_Events$onClick(_user$project$Messages$CloseAllMenus),
-								_1: {
-									ctor: '::',
-									_0: _elm_lang$html$Html_Attributes$style(styles),
-									_1: {
-										ctor: '::',
-										_0: A2(
-											_elm_lang$html$Html_Attributes$attribute,
-											'data-reorderable-index',
-											_elm_lang$core$Basics$toString(index)),
-										_1: {
-											ctor: '::',
-											_0: _elm_lang$html$Html_Attributes$contextmenu('tab-menu'),
-											_1: {
-												ctor: '::',
-												_0: A3(
-													_elm_lang$html$Html_Events$onWithOptions,
-													'contextmenu',
-													_user$project$Util$defaultPrevented,
-													A2(
-														_elm_lang$core$Json_Decode$map,
-														_user$project$Messages$ToggleTabMenu(index),
-														A3(
-															_elm_lang$core$Json_Decode$map2,
-															_user$project$Types$TabClickInfo,
-															_elm_lang$mouse$Mouse$position,
-															A2(_elm_lang$core$Json_Decode$field, 'currentTarget', _debois$elm_dom$DOM$boundingClientRect)))),
-												_1: {
-													ctor: '::',
-													_0: _elm_lang$html$Html_Events$onMouseDown(
-														_user$project$Messages$SetActive(_p26)),
-													_1: {ctor: '[]'}
-												}
-											}
-										}
-									}
-								}
-							}
-						}
-					},
-					_2: _elm_lang$core$Native_Utils.eq(model.selected.id, _p26.id),
-					_3: reorderItem
-				};
-			} else {
-				var _p28 = _p24._1;
-				var _p27 = _p24._0;
-				var styles = A2(
-					_elm_lang$core$Basics_ops['++'],
-					{
-						ctor: '::',
-						_0: {ctor: '_Tuple2', _0: 'position', _1: 'fixed'},
-						_1: {
-							ctor: '::',
-							_0: {
-								ctor: '_Tuple2',
-								_0: 'left',
-								_1: _user$project$Util$toPx(_p28.x)
-							},
-							_1: {
-								ctor: '::',
-								_0: {
-									ctor: '_Tuple2',
-									_0: 'top',
-									_1: _user$project$Util$toPx(_p28.y)
-								},
-								_1: {
-									ctor: '::',
-									_0: {ctor: '_Tuple2', _0: 'margin', _1: '0'},
-									_1: {ctor: '[]'}
-								}
-							}
-						}
-					},
-					_p27.isPinned ? {
-						ctor: '::',
-						_0: {
-							ctor: '_Tuple2',
-							_0: 'width',
-							_1: _user$project$Util$toPx(model.pinnedTabWidth)
-						},
-						_1: {
-							ctor: '::',
-							_0: {ctor: '_Tuple2', _0: 'box-sizing', _1: 'border-box'},
-							_1: {ctor: '[]'}
-						}
-					} : {
-						ctor: '::',
-						_0: {
-							ctor: '_Tuple2',
-							_0: 'width',
-							_1: _user$project$Util$toPx(model.flexTabWidth)
-						},
-						_1: {ctor: '[]'}
-					});
-				return {
-					ctor: '_Tuple4',
-					_0: _p27,
-					_1: A2(
-						_elm_lang$core$Basics_ops['++'],
-						{
-							ctor: '::',
-							_0: _elm_lang$html$Html_Attributes$class('draggable'),
-							_1: {
-								ctor: '::',
-								_0: _elm_lang$html$Html_Attributes$style(styles),
-								_1: {
-									ctor: '::',
-									_0: _elm_lang$html$Html_Attributes$classList(
-										{
-											ctor: '::',
-											_0: {ctor: '_Tuple2', _0: 'tab', _1: !_p27.isPinned},
-											_1: {
-												ctor: '::',
-												_0: {
-													ctor: '_Tuple2',
-													_0: 'tab--selected',
-													_1: _elm_lang$core$Native_Utils.eq(model.selected.id, _p27.id)
-												},
-												_1: {
-													ctor: '::',
-													_0: {ctor: '_Tuple2', _0: 'tab--pinned', _1: _p27.isPinned},
-													_1: {ctor: '[]'}
-												}
-											}
-										}),
-									_1: {
-										ctor: '::',
-										_0: _elm_lang$html$Html_Attributes$id('reorderable-placeholder'),
-										_1: {ctor: '[]'}
-									}
-								}
-							}
-						},
-						_mdgriffith$elm_style_animation$Animation$render(model.placeholderAnimationStyle)),
-					_2: _elm_lang$core$Native_Utils.eq(model.selected.id, _p27.id),
-					_3: _user$project$Types$ReorderableTab
-				};
-			}
-		}();
-		var tab = _p23._0;
-		var attrs = _p23._1;
-		var isSelected = _p23._2;
-		var reorderItem = _p23._3;
-		var viewTab = A2(
-			_elm_lang$html$Html$div,
-			attrs,
-			A3(_user$project$View$viewPlaceholderDetails, tab.isPinned, index, tab));
-		var _p29 = reorderItem;
-		switch (_p29.ctor) {
-			case 'ReorderableTab':
-				return viewTab;
-			case 'DropPreview':
-				return A2(
-					_elm_lang$html$Html$div,
-					{
-						ctor: '::',
-						_0: _elm_lang$html$Html_Attributes$class('drop-preview'),
-						_1: {
-							ctor: '::',
-							_0: _elm_lang$html$Html_Attributes$style(
-								{
-									ctor: '::',
-									_0: {
-										ctor: '_Tuple2',
-										_0: 'width',
-										_1: tab.isPinned ? _user$project$Util$toPx(model.pinnedTabWidth) : _user$project$Util$toPx(model.flexTabWidth)
-									},
-									_1: {ctor: '[]'}
-								}),
-							_1: {ctor: '[]'}
-						}
-					},
-					{
-						ctor: '::',
-						_0: viewTab,
-						_1: {ctor: '[]'}
-					});
-			default:
-				return _elm_lang$html$Html$text('');
-		}
-	});
-var _user$project$View$viewOverflowArea = F5(
-	function (model, maybeDestIndex, numNotOverflow, overflowMenu, tabs) {
-		return A2(
-			_elm_lang$html$Html$div,
-			{
-				ctor: '::',
-				_0: _elm_lang$html$Html_Attributes$class('overflow-container'),
-				_1: {ctor: '[]'}
-			},
-			function () {
-				var _p30 = overflowMenu;
-				if (_p30.ctor === 'MoreTab') {
-					return {
-						ctor: '::',
-						_0: _user$project$View$viewMoreTab(overflowMenu),
-						_1: {ctor: '[]'}
-					};
-				} else {
-					return {
-						ctor: '::',
-						_0: _user$project$View$viewMoreTab(overflowMenu),
-						_1: {
-							ctor: '::',
-							_0: A2(
-								_elm_lang$html$Html$div,
-								{
-									ctor: '::',
-									_0: _elm_lang$html$Html_Attributes$class('overflow-menu'),
-									_1: {ctor: '[]'}
-								},
-								_Skinney$elm_array_exploration$Array_Hamt$toList(
-									A2(
-										_Skinney$elm_array_exploration$Array_Hamt$indexedMap,
-										F2(
-											function (index, tab) {
-												return A5(
-													_user$project$View$viewOverflowTab,
-													_user$project$Reorderable_State$NonPlaceholderReorderable(tab),
-													model,
-													maybeDestIndex,
-													index + numNotOverflow,
-													tab);
-											}),
-										tabs))),
-							_1: {ctor: '[]'}
-						}
-					};
-				}
-			}());
-	});
 var _user$project$View$viewTabs = F3(
 	function (model, maybeDestIndex, tabs) {
-		return _Skinney$elm_array_exploration$Array_Hamt$toList(
-			A2(
-				_Skinney$elm_array_exploration$Array_Hamt$indexedMap,
-				A2(_user$project$View$viewNonPlaceholderTab, model, maybeDestIndex),
-				tabs));
-	});
-var _user$project$View$viewTabsWithoutOverflow = F3(
-	function (model, maybeDestIndex, tabs) {
 		return A2(
 			_elm_lang$html$Html$div,
 			{
@@ -25283,66 +24880,26 @@ var _user$project$View$viewTabsWithoutOverflow = F3(
 				_0: _elm_lang$html$Html_Attributes$class('tab-list'),
 				_1: {ctor: '[]'}
 			},
-			A3(_user$project$View$viewTabs, model, maybeDestIndex, tabs));
-	});
-var _user$project$View$viewTabsWithOverflow = F4(
-	function (model, maybeDestIndex, tabs, overflowArea) {
-		var numOverflow = 2;
-		var numNotOverflow = _Skinney$elm_array_exploration$Array_Hamt$length(tabs) - numOverflow;
-		return A2(
-			_elm_lang$html$Html$div,
-			{
-				ctor: '::',
-				_0: _elm_lang$html$Html_Attributes$class('tab-list'),
-				_1: {ctor: '[]'}
-			},
-			A3(
-				_elm_lang$core$Basics$flip,
-				_elm_lang$core$List$append,
-				{
-					ctor: '::',
-					_0: A5(
-						_user$project$View$viewOverflowArea,
-						model,
-						maybeDestIndex,
-						numNotOverflow,
-						overflowArea,
-						A3(
-							_Skinney$elm_array_exploration$Array_Hamt$slice,
-							numNotOverflow,
-							_Skinney$elm_array_exploration$Array_Hamt$length(tabs),
-							tabs)),
-					_1: {ctor: '[]'}
-				},
+			_Skinney$elm_array_exploration$Array_Hamt$toList(
 				A2(
-					_elm_lang$core$List$take,
-					numNotOverflow,
-					A3(_user$project$View$viewTabs, model, maybeDestIndex, tabs))));
-	});
-var _user$project$View$viewTabsAndOverflow = F2(
-	function (model, maybeDestIndex) {
-		var tabs = model.dragState.reorderedItems;
-		var withOverflow = A3(_user$project$View$viewTabsWithOverflow, model, maybeDestIndex, tabs);
-		var withoutOverflow = A3(_user$project$View$viewTabsWithoutOverflow, model, maybeDestIndex, tabs);
-		return A2(
-			_elm_lang$core$Maybe$withDefault,
-			withoutOverflow,
-			A2(_elm_lang$core$Maybe$map, withOverflow, model.overflowArea));
+					_Skinney$elm_array_exploration$Array_Hamt$indexedMap,
+					A2(_user$project$View$viewNonPlaceholderTab, model, maybeDestIndex),
+					tabs)));
 	});
 var _user$project$View$view = function (model) {
-	var _p31 = function () {
-		var _p32 = model.dragState.placeholder;
-		if (_p32.ctor === 'Just') {
-			var _p33 = _p32._0.destIndex;
+	var _p23 = function () {
+		var _p24 = model.dragState.placeholder;
+		if (_p24.ctor === 'Just') {
+			var _p25 = _p24._0.destIndex;
 			return {
 				ctor: '_Tuple2',
 				_0: A4(
 					_user$project$View$viewTabReorderItem,
-					A2(_user$project$Reorderable_State$PlaceholderReorderable, _p32._0.draggable, _p32._0.point),
+					A2(_user$project$Reorderable_State$PlaceholderReorderable, _p24._0.draggable, _p24._0.point),
 					model,
-					_p33,
-					_p32._0.sourceIndex),
-				_1: _p33
+					_p25,
+					_p24._0.sourceIndex),
+				_1: _p25
 			};
 		} else {
 			return {
@@ -25352,8 +24909,8 @@ var _user$project$View$view = function (model) {
 			};
 		}
 	}();
-	var placeholder = _p31._0;
-	var maybeDestIndex = _p31._1;
+	var placeholder = _p23._0;
+	var maybeDestIndex = _p23._1;
 	return A2(
 		_elm_lang$html$Html$div,
 		{
@@ -25375,7 +24932,7 @@ var _user$project$View$view = function (model) {
 					},
 					{
 						ctor: '::',
-						_0: A2(_user$project$View$viewTabsAndOverflow, model, maybeDestIndex),
+						_0: A3(_user$project$View$viewTabs, model, maybeDestIndex, model.dragState.items),
 						_1: {
 							ctor: '::',
 							_0: placeholder,
@@ -25407,7 +24964,11 @@ var _user$project$Main$main = _elm_lang$html$Html$program(
 			{
 				ctor: '_Tuple2',
 				_0: _user$project$Model$initialModel,
-				_1: {ctor: '[]'}
+				_1: {
+					ctor: '::',
+					_0: _user$project$Ports$getFlexTabWidth(0),
+					_1: {ctor: '[]'}
+				}
 			}),
 		update: function (_p0) {
 			return _user$project$Util$batchUpdate(
@@ -25420,7 +24981,7 @@ var _user$project$Main$main = _elm_lang$html$Html$program(
 var Elm = {};
 Elm['Main'] = Elm['Main'] || {};
 if (typeof _user$project$Main$main !== 'undefined') {
-    _user$project$Main$main(Elm['Main'], 'Main', {"types":{"unions":{"Animation.Model.Tick":{"args":[],"tags":{"Tick":["Time.Time"]}},"Messages.Msg":{"args":[],"tags":{"CloseTabsToTheRightOfIndex":["Int"],"CloseAllMenus":[],"CloseTabAtIndex":["Int"],"FinishPinningTab":["Types.PinningPlaceholder"],"NewTabWidth":["Float"],"AnimateMessenger":["Animation.Msg"],"UnpinTabAtIndex":["Int","Types.Tab","DOM.Rectangle"],"PinTabAtIndex":["Int","Types.Tab","DOM.Rectangle"],"ToggleTabMenu":["Int","Types.TabClickInfo"],"SetActive":["Types.Tab"],"KeyboardExtraMsg":["Keyboard.Extra.Msg"],"FinishUnpinningTab":["Types.UnPinningPlaceholder"],"ToggleOverflowMenu":["Types.OverflowArea"],"CloseTabsOtherThanIndex":["Int"],"FinishSlidingTab":["Types.SlidingPlaceholder"],"WindowResize":["Window.Size"],"DragMsg":["Reorderable.Update.DragMsg"]}},"Keyboard.Extra.Msg":{"args":[],"tags":{"Down":["Keyboard.KeyCode"],"Up":["Keyboard.KeyCode"]}},"Types.OverflowArea":{"args":[],"tags":{"Expanded":[],"MoreTab":[]}},"Reorderable.Update.DragMsg":{"args":[],"tags":{"DragHold":["{ placeholder : { point : Reorderable.State.Point , bounds : Reorderable.State.Bounds } , reorderableBounds : List Reorderable.State.Bounds }"],"DragStop":[],"DragMove":["{ clientSize : Reorderable.State.Size , cursor : Reorderable.State.Point , placeholder : { point : Reorderable.State.Point , bounds : Reorderable.State.Bounds } , reorderableBounds : List Reorderable.State.Bounds }"],"DragStart":["{ sourceIndex : Int, point : Reorderable.State.Point }"]}}},"aliases":{"Types.SlidingPlaceholder":{"args":[],"type":"{ start : Reorderable.State.Point , end : Reorderable.State.Point , sourceTabIndex : Int , destTabIndex : Int , tab : Types.Tab }"},"Types.PinningPlaceholder":{"args":[],"type":"{ start : Reorderable.State.Point , end : Reorderable.State.Point , startWidth : Float , oldTabIndex : Int , newTabIndex : Int , tab : Types.Tab }"},"Types.TabClickInfo":{"args":[],"type":"{ position : Mouse.Position, rect : DOM.Rectangle }"},"Types.Tab":{"args":[],"type":"{ id : Int, title : String, icon : String, isPinned : Bool }"},"Mouse.Position":{"args":[],"type":"{ x : Int, y : Int }"},"Reorderable.State.Size":{"args":[],"type":"{ height : Float, width : Float }"},"Keyboard.KeyCode":{"args":[],"type":"Int"},"Types.UnPinningPlaceholder":{"args":[],"type":"{ start : Reorderable.State.Point , end : Reorderable.State.Point , endWidth : Float , oldTabIndex : Int , newTabIndex : Int , tab : Types.Tab }"},"Window.Size":{"args":[],"type":"{ width : Int, height : Int }"},"Reorderable.State.Bounds":{"args":[],"type":"{ top : Float, left : Float, bottom : Float, right : Float }"},"Reorderable.State.Point":{"args":[],"type":"{ x : Float, y : Float }"},"Time.Time":{"args":[],"type":"Float"},"DOM.Rectangle":{"args":[],"type":"{ top : Float, left : Float, width : Float, height : Float }"},"Animation.Msg":{"args":[],"type":"Animation.Model.Tick"}},"message":"Messages.Msg"},"versions":{"elm":"0.18.0"}});
+    _user$project$Main$main(Elm['Main'], 'Main', {"types":{"unions":{"Animation.Model.Tick":{"args":[],"tags":{"Tick":["Time.Time"]}},"Messages.Msg":{"args":[],"tags":{"CloseTabsToTheRightOfIndex":["Int"],"CloseAllMenus":[],"CloseTabAtIndex":["Int"],"FinishPinningTab":["Types.PinningPlaceholder"],"NewTabWidth":["Float"],"AnimateMessenger":["Animation.Msg"],"UnpinTabAtIndex":["Int","Types.Tab","DOM.Rectangle"],"PinTabAtIndex":["Int","Types.Tab","DOM.Rectangle"],"ToggleTabMenu":["Int","Types.TabClickInfo"],"SetActive":["Types.Tab"],"KeyboardExtraMsg":["Keyboard.Extra.Msg"],"FinishUnpinningTab":["Types.UnPinningPlaceholder"],"CloseTabsOtherThanIndex":["Int"],"FinishSlidingTab":["Types.SlidingPlaceholder"],"WindowResize":["Window.Size"],"DragMsg":["Reorderable.Update.DragMsg"]}},"Keyboard.Extra.Msg":{"args":[],"tags":{"Down":["Keyboard.KeyCode"],"Up":["Keyboard.KeyCode"]}},"Reorderable.Update.DragMsg":{"args":[],"tags":{"DragHold":["{ placeholder : { point : Reorderable.State.Point , bounds : Reorderable.State.Bounds } , reorderableBounds : List Reorderable.State.Bounds }"],"DragStop":[],"DragMove":["{ clientSize : Reorderable.State.Size , cursor : Reorderable.State.Point , placeholder : { point : Reorderable.State.Point , bounds : Reorderable.State.Bounds } , reorderableBounds : List Reorderable.State.Bounds }"],"DragStart":["{ sourceIndex : Int, point : Reorderable.State.Point }"]}}},"aliases":{"Types.SlidingPlaceholder":{"args":[],"type":"{ start : Reorderable.State.Point , end : Reorderable.State.Point , sourceTabIndex : Int , destTabIndex : Int , tab : Types.Tab }"},"Types.PinningPlaceholder":{"args":[],"type":"{ start : Reorderable.State.Point , end : Reorderable.State.Point , startWidth : Float , oldTabIndex : Int , newTabIndex : Int , tab : Types.Tab }"},"Types.TabClickInfo":{"args":[],"type":"{ position : Mouse.Position, rect : DOM.Rectangle }"},"Types.Tab":{"args":[],"type":"{ id : Int, title : String, icon : String, isPinned : Bool }"},"Mouse.Position":{"args":[],"type":"{ x : Int, y : Int }"},"Reorderable.State.Size":{"args":[],"type":"{ height : Float, width : Float }"},"Keyboard.KeyCode":{"args":[],"type":"Int"},"Types.UnPinningPlaceholder":{"args":[],"type":"{ start : Reorderable.State.Point , end : Reorderable.State.Point , endWidth : Float , oldTabIndex : Int , newTabIndex : Int , tab : Types.Tab }"},"Window.Size":{"args":[],"type":"{ width : Int, height : Int }"},"Reorderable.State.Bounds":{"args":[],"type":"{ top : Float, left : Float, bottom : Float, right : Float }"},"Reorderable.State.Point":{"args":[],"type":"{ x : Float, y : Float }"},"Time.Time":{"args":[],"type":"Float"},"DOM.Rectangle":{"args":[],"type":"{ top : Float, left : Float, width : Float, height : Float }"},"Animation.Msg":{"args":[],"type":"Animation.Model.Tick"}},"message":"Messages.Msg"},"versions":{"elm":"0.18.0"}});
 }
 
 if (typeof define === "function" && define['amd'])

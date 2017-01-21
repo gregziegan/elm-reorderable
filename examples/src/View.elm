@@ -12,7 +12,7 @@ import Model exposing (Model)
 import Mouse
 import Reorderable.State exposing (State, ViewableReorderable(..))
 import Svg exposing (Svg)
-import Types exposing (OverflowArea(..), PinPlaceholder(..), PinningPlaceholder, ReorderItem(..), SlidingPlaceholder, TabClickInfo, TabMenu, TabMenuItem(..), UnPinningPlaceholder, Logo(..), Tab, tabMenuItemToString, tabMenuItems, toLogo)
+import Types exposing (PinPlaceholder(..), PinningPlaceholder, ReorderItem(..), SlidingPlaceholder, TabClickInfo, TabMenu, TabMenuItem(..), UnPinningPlaceholder, Logo(..), Tab, tabMenuItemToString, tabMenuItems, toLogo)
 import Svgs exposing (viewClose, viewDownCaret, viewElmLogo)
 import Util exposing (defaultPrevented, toPx)
 
@@ -37,7 +37,7 @@ view model =
             [ viewTooltips model
             , div
                 [ class "tabs-container" ]
-                [ viewTabsAndOverflow model maybeDestIndex
+                [ viewTabs model maybeDestIndex model.dragState.items
                 , placeholder
                 , model.pinPlaceholder
                     |> Maybe.map (viewPinPlaceholder model)
@@ -47,190 +47,12 @@ view model =
             ]
 
 
-viewTabs : Model -> Maybe Int -> Array Tab -> List (Html Msg)
+viewTabs : Model -> Maybe Int -> Array Tab -> Html Msg
 viewTabs model maybeDestIndex tabs =
     tabs
         |> Array.indexedMap (viewNonPlaceholderTab model maybeDestIndex)
         |> Array.toList
-
-
-viewTabsAndOverflow : Model -> Maybe Int -> Html Msg
-viewTabsAndOverflow model maybeDestIndex =
-    let
-        tabs =
-            model.dragState.reorderedItems
-
-        withOverflow =
-            viewTabsWithOverflow model maybeDestIndex tabs
-
-        withoutOverflow =
-            viewTabsWithoutOverflow model maybeDestIndex tabs
-    in
-        model.overflowArea
-            |> Maybe.map withOverflow
-            |> Maybe.withDefault withoutOverflow
-
-
-viewTabsWithoutOverflow : Model -> Maybe Int -> Array Tab -> Html Msg
-viewTabsWithoutOverflow model maybeDestIndex tabs =
-    div [ class "tab-list" ] (viewTabs model maybeDestIndex tabs)
-
-
-viewTabsWithOverflow : Model -> Maybe Int -> Array Tab -> OverflowArea -> Html Msg
-viewTabsWithOverflow model maybeDestIndex tabs overflowArea =
-    let
-        numOverflow =
-            2
-
-        numNotOverflow =
-            Array.length tabs - numOverflow
-    in
-        div
-            [ class "tab-list"
-            ]
-            (tabs
-                |> viewTabs model maybeDestIndex
-                |> List.take numNotOverflow
-                |> flip List.append
-                    ([ tabs
-                        |> Array.slice numNotOverflow (Array.length tabs)
-                        |> viewOverflowArea model maybeDestIndex numNotOverflow overflowArea
-                     ]
-                    )
-            )
-
-
-viewOverflowArea : Model -> Maybe Int -> Int -> OverflowArea -> Array Tab -> Html Msg
-viewOverflowArea model maybeDestIndex numNotOverflow overflowMenu tabs =
-    div
-        [ class "overflow-container" ]
-        (case overflowMenu of
-            MoreTab ->
-                [ viewMoreTab overflowMenu ]
-
-            Expanded ->
-                [ viewMoreTab overflowMenu
-                , tabs
-                    |> Array.indexedMap (\index tab -> viewOverflowTab (NonPlaceholderReorderable tab) model maybeDestIndex (index + numNotOverflow) tab)
-                    |> Array.toList
-                    |> div [ class "overflow-menu" ]
-                ]
-        )
-
-
-viewOverflowTab : ViewableReorderable Tab -> Model -> Maybe Int -> Int -> Tab -> Html Msg
-viewOverflowTab reorderable model maybeDestIndex index tab =
-    let
-        ( tab, attrs, isSelected, reorderItem ) =
-            case reorderable of
-                NonPlaceholderReorderable draggable ->
-                    let
-                        reorderItem =
-                            if maybeDestIndex == Just index then
-                                DropPreview
-                            else
-                                ReorderableTab
-
-                        styles =
-                            List.concat
-                                [ case reorderItem of
-                                    DropPreview ->
-                                        [ ( "visibility", "hidden" ) ]
-
-                                    _ ->
-                                        []
-                                , if draggable.isPinned then
-                                    [ ( "width", toPx model.pinnedTabWidth ) ]
-                                  else
-                                    [ ( "width", toPx model.flexTabWidth ) ]
-                                ]
-                    in
-                        ( draggable
-                        , [ class "draggable"
-                          , classList
-                                [ ( "overflow-tab", not draggable.isPinned )
-                                , ( "tab--selected", model.selected.id == draggable.id )
-                                , ( "tab--pinned", draggable.isPinned )
-                                , ( "tab-id-" ++ toString draggable.id, True )
-                                ]
-                          , onClick CloseAllMenus
-                          , style styles
-                          , attribute "data-reorderable-index" (toString index)
-                          , contextmenu "tab-menu"
-                          , Decode.map2 TabClickInfo Mouse.position (field "currentTarget" boundingClientRect)
-                                |> Decode.map (ToggleTabMenu index)
-                                |> onWithOptions "contextmenu" defaultPrevented
-                          , onMouseDown (SetActive draggable)
-                          ]
-                        , model.selected.id == draggable.id
-                        , reorderItem
-                        )
-
-                PlaceholderReorderable draggable point ->
-                    let
-                        styles =
-                            [ ( "position", "fixed" )
-                            , ( "left", toPx point.x )
-                            , ( "top", toPx point.y )
-                            , ( "margin", "0" )
-                            ]
-                                ++ if draggable.isPinned then
-                                    [ ( "width", toPx model.pinnedTabWidth )
-                                    , ( "box-sizing", "border-box" )
-                                    ]
-                                   else
-                                    [ ( "width", toPx model.flexTabWidth ) ]
-                    in
-                        ( draggable
-                        , ([ class "draggable"
-                           , style styles
-                           , classList
-                                [ ( "tab", not draggable.isPinned )
-                                , ( "tab--selected", model.selected.id == draggable.id )
-                                , ( "tab--pinned", draggable.isPinned )
-                                ]
-                           , id "reorderable-placeholder"
-                           ]
-                            ++ Animation.render model.placeholderAnimationStyle
-                          )
-                        , model.selected.id == draggable.id
-                        , ReorderableTab
-                        )
-
-        viewTab =
-            div attrs (viewPlaceholderDetails tab.isPinned index tab)
-    in
-        case reorderItem of
-            ReorderableTab ->
-                viewTab
-
-            DropPreview ->
-                div
-                    [ class "drop-preview"
-                    , style
-                        [ ( "width"
-                          , if tab.isPinned then
-                                toPx model.pinnedTabWidth
-                            else
-                                toPx model.flexTabWidth
-                          )
-                        ]
-                    ]
-                    [ viewTab ]
-
-            _ ->
-                text ""
-
-
-viewMoreTab : OverflowArea -> Html Msg
-viewMoreTab overflowArea =
-    button
-        [ class "more-tab"
-        , onClick (ToggleOverflowMenu overflowArea)
-        ]
-        [ div [ class "more-tab-caret" ] [ viewDownCaret ]
-        , text "More"
-        ]
+        |> div [ class "tab-list" ]
 
 
 viewNonPlaceholderTab : Model -> Maybe Int -> Int -> Tab -> Html Msg
