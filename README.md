@@ -1,11 +1,3 @@
-# Reorderable tabs
+# Elm Reorderable
 
-## Development
-
-To run locally:
-
-`nvm use 6`
-
-`npm i -g elm-live`
-
-`elm-live src/Main.elm --output=build/bundle.js --open --debug`
+⚠️ UNDER CONSTRUCTION! ⚠️

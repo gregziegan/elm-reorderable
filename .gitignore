@@ -11,6 +11,5 @@ node_modules
 .DS_Store
 
 build
-lib
 dist
 linter-elm-make.json
