@@ -135,196 +135,6 @@ function A9(fun, a, b, c, d, e, f, g, h, i)
     : fun(a)(b)(c)(d)(e)(f)(g)(h)(i);
 }
 
-var _elm_lang$core$Native_Bitwise = function() {
-
-return {
-	and: F2(function and(a, b) { return a & b; }),
-	or: F2(function or(a, b) { return a | b; }),
-	xor: F2(function xor(a, b) { return a ^ b; }),
-	complement: function complement(a) { return ~a; },
-	shiftLeftBy: F2(function(offset, a) { return a << offset; }),
-	shiftRightBy: F2(function(offset, a) { return a >> offset; }),
-	shiftRightZfBy: F2(function(offset, a) { return a >>> offset; })
-};
-
-}();
-
-var _elm_lang$core$Bitwise$shiftRightZfBy = _elm_lang$core$Native_Bitwise.shiftRightZfBy;
-var _elm_lang$core$Bitwise$shiftRightBy = _elm_lang$core$Native_Bitwise.shiftRightBy;
-var _elm_lang$core$Bitwise$shiftLeftBy = _elm_lang$core$Native_Bitwise.shiftLeftBy;
-var _elm_lang$core$Bitwise$complement = _elm_lang$core$Native_Bitwise.complement;
-var _elm_lang$core$Bitwise$xor = _elm_lang$core$Native_Bitwise.xor;
-var _elm_lang$core$Bitwise$or = _elm_lang$core$Native_Bitwise.or;
-var _elm_lang$core$Bitwise$and = _elm_lang$core$Native_Bitwise.and;
-
-var _Skinney$elm_array_exploration$Native_JsArray = function() {
-
-var empty = [];
-
-function singleton(val) {
-    return [val];
-}
-
-function length(arr) {
-    return arr.length;
-}
-
-function initialize(size, offset, f) {
-    var result = newArray(size);
-
-    for (var i = 0; i < size; i++) {
-        result[i] = f(offset + i);
-    }
-
-    return result;
-}
-
-function newArray(size) {
-    // A JS literal is much faster than `new Array(size)` in Safari.
-    // The following code optimizes the common case of 32-sized arrays,
-    // while falling back to the "proper" way to preallocate arrays
-    // for other sizes. This makes a big performance difference in
-    // Safari, while exerting a minor performance hit in Chrome.
-    // For 32-sized arrays, Chrome and Safari become equally fast.
-    if (size !== 32) {
-        return new Array(size);
-    }
-
-    return [
-        null, null, null, null, null,
-        null, null, null, null, null,
-        null, null, null, null, null,
-        null, null, null, null, null,
-        null, null, null, null, null,
-        null, null, null, null, null,
-        null, null
-    ];
-}
-
-function initializeFromList(max, ls) {
-    var result = newArray(max);
-
-    for (var i = 0; i < max; i++) {
-        if (ls.ctor === '[]') {
-            result.length = i;
-            break;
-        }
-
-        result[i] = ls._0;
-        ls = ls._1;
-    }
-
-    return {
-        ctor: '_Tuple2',
-        _0: result,
-        _1: ls
-    };
-}
-
-function unsafeGet(idx, arr) {
-    return arr[idx];
-}
-
-function unsafeSet(idx, val, arr) {
-    var result = arr.slice();
-    result[idx] = val;
-    return result;
-}
-
-function push(val, arr) {
-    var result = arr.slice();
-    result.push(val);
-    return result;
-}
-
-function foldl(f, init, arr) {
-    var acc = init;
-    var len = arr.length;
-
-    for (var i = 0; i < len; i++) {
-        acc = A2(f, arr[i], acc);
-    }
-
-    return acc;
-}
-
-function foldr(f, init, arr) {
-    var acc = init;
-
-    for (var i = arr.length - 1; i >= 0; i--) {
-        acc = A2(f, arr[i], acc);
-    }
-
-    return acc;
-}
-
-function map(f, arr) {
-    var len = arr.length;
-    var result = newArray(len);
-
-    for (var i = 0; i < len; i++) {
-        result[i] = f(arr[i]);
-    }
-
-    return result;
-}
-
-function indexedMap(f, offset, arr) {
-    var len = arr.length;
-    var result = newArray(len);
-
-    for (var i = 0; i < len; i++) {
-        result[i] = A2(f, offset + i, arr[i]);
-    }
-
-    return result;
-}
-
-function slice(from, to, arr) {
-    return arr.slice(from, to);
-}
-
-function appendN(n, dest, source) {
-    var destLen = dest.length;
-    var itemsToCopy = n - destLen;
-
-    if (itemsToCopy > source.length) {
-        itemsToCopy = source.length;
-    }
-
-    var size = destLen + itemsToCopy;
-    var result = newArray(size);
-
-    for (var i = 0; i < destLen; i++) {
-        result[i] = dest[i];
-    }
-
-    for (var i = 0; i < itemsToCopy; i++) {
-        result[i + destLen] = source[i];
-    }
-
-    return result;
-}
-
-return {
-    empty: empty,
-    singleton: singleton,
-    length: length,
-    initialize: F3(initialize),
-    initializeFromList: F2(initializeFromList),
-    unsafeGet: F2(unsafeGet),
-    unsafeSet: F3(unsafeSet),
-    push: F2(push),
-    foldl: F3(foldl),
-    foldr: F3(foldr),
-    map: F2(map),
-    indexedMap: F3(indexedMap),
-    slice: F3(slice),
-    appendN: F3(appendN)
-};
-
-}();
-
 //import Native.Utils //
 
 var _elm_lang$core$Native_Basics = function() {
@@ -3348,6 +3158,216 @@ var _elm_lang$core$Platform$Program = {ctor: 'Program'};
 var _elm_lang$core$Platform$Task = {ctor: 'Task'};
 var _elm_lang$core$Platform$ProcessId = {ctor: 'ProcessId'};
 var _elm_lang$core$Platform$Router = {ctor: 'Router'};
+
+var _NoRedInk$rocket_update$Rocket_ops = _NoRedInk$rocket_update$Rocket_ops || {};
+_NoRedInk$rocket_update$Rocket_ops['=>'] = F2(
+	function (v0, v1) {
+		return {ctor: '_Tuple2', _0: v0, _1: v1};
+	});
+var _NoRedInk$rocket_update$Rocket$batchCommands = function (_p0) {
+	var _p1 = _p0;
+	return A2(
+		_NoRedInk$rocket_update$Rocket_ops['=>'],
+		_p1._0,
+		_elm_lang$core$Platform_Cmd$batch(_p1._1));
+};
+var _NoRedInk$rocket_update$Rocket$batchInit = _NoRedInk$rocket_update$Rocket$batchCommands;
+var _NoRedInk$rocket_update$Rocket$batchUpdate = function (fn) {
+	return function (_p2) {
+		return _NoRedInk$rocket_update$Rocket$batchCommands(
+			fn(_p2));
+	};
+};
+
+var _elm_lang$core$Native_Bitwise = function() {
+
+return {
+	and: F2(function and(a, b) { return a & b; }),
+	or: F2(function or(a, b) { return a | b; }),
+	xor: F2(function xor(a, b) { return a ^ b; }),
+	complement: function complement(a) { return ~a; },
+	shiftLeftBy: F2(function(offset, a) { return a << offset; }),
+	shiftRightBy: F2(function(offset, a) { return a >> offset; }),
+	shiftRightZfBy: F2(function(offset, a) { return a >>> offset; })
+};
+
+}();
+
+var _elm_lang$core$Bitwise$shiftRightZfBy = _elm_lang$core$Native_Bitwise.shiftRightZfBy;
+var _elm_lang$core$Bitwise$shiftRightBy = _elm_lang$core$Native_Bitwise.shiftRightBy;
+var _elm_lang$core$Bitwise$shiftLeftBy = _elm_lang$core$Native_Bitwise.shiftLeftBy;
+var _elm_lang$core$Bitwise$complement = _elm_lang$core$Native_Bitwise.complement;
+var _elm_lang$core$Bitwise$xor = _elm_lang$core$Native_Bitwise.xor;
+var _elm_lang$core$Bitwise$or = _elm_lang$core$Native_Bitwise.or;
+var _elm_lang$core$Bitwise$and = _elm_lang$core$Native_Bitwise.and;
+
+var _Skinney$elm_array_exploration$Native_JsArray = function() {
+
+var empty = [];
+
+function singleton(val) {
+    return [val];
+}
+
+function length(arr) {
+    return arr.length;
+}
+
+function initialize(size, offset, f) {
+    var result = newArray(size);
+
+    for (var i = 0; i < size; i++) {
+        result[i] = f(offset + i);
+    }
+
+    return result;
+}
+
+function newArray(size) {
+    // A JS literal is much faster than `new Array(size)` in Safari.
+    // The following code optimizes the common case of 32-sized arrays,
+    // while falling back to the "proper" way to preallocate arrays
+    // for other sizes. This makes a big performance difference in
+    // Safari, while exerting a minor performance hit in Chrome.
+    // For 32-sized arrays, Chrome and Safari become equally fast.
+    if (size !== 32) {
+        return new Array(size);
+    }
+
+    return [
+        null, null, null, null, null,
+        null, null, null, null, null,
+        null, null, null, null, null,
+        null, null, null, null, null,
+        null, null, null, null, null,
+        null, null, null, null, null,
+        null, null
+    ];
+}
+
+function initializeFromList(max, ls) {
+    var result = newArray(max);
+
+    for (var i = 0; i < max; i++) {
+        if (ls.ctor === '[]') {
+            result.length = i;
+            break;
+        }
+
+        result[i] = ls._0;
+        ls = ls._1;
+    }
+
+    return {
+        ctor: '_Tuple2',
+        _0: result,
+        _1: ls
+    };
+}
+
+function unsafeGet(idx, arr) {
+    return arr[idx];
+}
+
+function unsafeSet(idx, val, arr) {
+    var result = arr.slice();
+    result[idx] = val;
+    return result;
+}
+
+function push(val, arr) {
+    var result = arr.slice();
+    result.push(val);
+    return result;
+}
+
+function foldl(f, init, arr) {
+    var acc = init;
+    var len = arr.length;
+
+    for (var i = 0; i < len; i++) {
+        acc = A2(f, arr[i], acc);
+    }
+
+    return acc;
+}
+
+function foldr(f, init, arr) {
+    var acc = init;
+
+    for (var i = arr.length - 1; i >= 0; i--) {
+        acc = A2(f, arr[i], acc);
+    }
+
+    return acc;
+}
+
+function map(f, arr) {
+    var len = arr.length;
+    var result = newArray(len);
+
+    for (var i = 0; i < len; i++) {
+        result[i] = f(arr[i]);
+    }
+
+    return result;
+}
+
+function indexedMap(f, offset, arr) {
+    var len = arr.length;
+    var result = newArray(len);
+
+    for (var i = 0; i < len; i++) {
+        result[i] = A2(f, offset + i, arr[i]);
+    }
+
+    return result;
+}
+
+function slice(from, to, arr) {
+    return arr.slice(from, to);
+}
+
+function appendN(n, dest, source) {
+    var destLen = dest.length;
+    var itemsToCopy = n - destLen;
+
+    if (itemsToCopy > source.length) {
+        itemsToCopy = source.length;
+    }
+
+    var size = destLen + itemsToCopy;
+    var result = newArray(size);
+
+    for (var i = 0; i < destLen; i++) {
+        result[i] = dest[i];
+    }
+
+    for (var i = 0; i < itemsToCopy; i++) {
+        result[i + destLen] = source[i];
+    }
+
+    return result;
+}
+
+return {
+    empty: empty,
+    singleton: singleton,
+    length: length,
+    initialize: F3(initialize),
+    initializeFromList: F2(initializeFromList),
+    unsafeGet: F2(unsafeGet),
+    unsafeSet: F3(unsafeSet),
+    push: F2(push),
+    foldl: F3(foldl),
+    foldr: F3(foldr),
+    map: F2(map),
+    indexedMap: F3(indexedMap),
+    slice: F3(slice),
+    appendN: F3(appendN)
+};
+
+}();
 
 var _Skinney$elm_array_exploration$Array_JsArray$appendN = _Skinney$elm_array_exploration$Native_JsArray.appendN;
 var _Skinney$elm_array_exploration$Array_JsArray$slice = _Skinney$elm_array_exploration$Native_JsArray.slice;
@@ -23345,25 +23365,6 @@ var _user$project$Subscriptions$subscriptions = function (model) {
 		});
 };
 
-var _user$project$Util_ops = _user$project$Util_ops || {};
-_user$project$Util_ops['=>'] = F2(
-	function (v0, v1) {
-		return {ctor: '_Tuple2', _0: v0, _1: v1};
-	});
-var _user$project$Util$batchCommands = function (_p0) {
-	var _p1 = _p0;
-	return A2(
-		_user$project$Util_ops['=>'],
-		_p1._0,
-		_elm_lang$core$Platform_Cmd$batch(_p1._1));
-};
-var _user$project$Util$batchInit = _user$project$Util$batchCommands;
-var _user$project$Util$batchUpdate = function (fn) {
-	return function (_p2) {
-		return _user$project$Util$batchCommands(
-			fn(_p2));
-	};
-};
 var _user$project$Util$fastDrift = _mdgriffith$elm_style_animation$Animation$easing(
 	{
 		duration: 0.1 * _elm_lang$core$Time$second,
@@ -23936,7 +23937,7 @@ var _user$project$Update$updateDrag = F2(
 			var _p24 = dragMsg;
 			if (_p24.ctor === 'DragHold') {
 				return A2(
-					_user$project$Util_ops['=>'],
+					_NoRedInk$rocket_update$Rocket_ops['=>'],
 					A3(
 						_user$project$Update$slideTabIntoPreview,
 						_p24._0.placeholder.bounds,
@@ -23947,7 +23948,7 @@ var _user$project$Update$updateDrag = F2(
 					{ctor: '[]'});
 			} else {
 				return A2(
-					_user$project$Util_ops['=>'],
+					_NoRedInk$rocket_update$Rocket_ops['=>'],
 					_elm_lang$core$Native_Utils.update(
 						model,
 						{dragState: _p25}),
@@ -23959,7 +23960,7 @@ var _user$project$Update$updateDrag = F2(
 			}
 		} else {
 			return A2(
-				_user$project$Util_ops['=>'],
+				_NoRedInk$rocket_update$Rocket_ops['=>'],
 				model,
 				{ctor: '[]'});
 		}
@@ -24000,7 +24001,7 @@ var _user$project$Update$update = F2(
 					}
 				};
 				return A2(
-					_user$project$Util_ops['=>'],
+					_NoRedInk$rocket_update$Rocket_ops['=>'],
 					_elm_lang$core$Native_Utils.update(
 						model,
 						{pinPlaceholderStyle: pinPlaceholderStyle, placeholderAnimationStyle: placeholderAnimationStyle, pinDestinationStyle: pinDestinationStyle, pinStartBackdropStyle: pinStartBackdropStyle}),
@@ -24011,7 +24012,7 @@ var _user$project$Update$update = F2(
 				var keyboardCmd = _p32._1;
 				var escapeIsPressed = A2(_ohanhi$keyboard_extra$Keyboard_Extra$isPressed, _ohanhi$keyboard_extra$Keyboard_Extra$Escape, keyboardModel);
 				return A2(
-					_user$project$Util_ops['=>'],
+					_NoRedInk$rocket_update$Rocket_ops['=>'],
 					_user$project$Update$resetDragState(
 						_user$project$Update$closeAllMenus(
 							_elm_lang$core$Native_Utils.update(
@@ -24027,7 +24028,7 @@ var _user$project$Update$update = F2(
 			case 'FinishSlidingTab':
 				var newTabs = A3(_user$project$Reorderable_Update$dropAndShift, _p26._0.sourceTabIndex, _p26._0.destTabIndex, model.dragState.items);
 				return A2(
-					_user$project$Util_ops['=>'],
+					_NoRedInk$rocket_update$Rocket_ops['=>'],
 					_elm_lang$core$Native_Utils.update(
 						model,
 						{
@@ -24038,18 +24039,18 @@ var _user$project$Update$update = F2(
 					{ctor: '[]'});
 			case 'SetActive':
 				return A2(
-					_user$project$Util_ops['=>'],
+					_NoRedInk$rocket_update$Rocket_ops['=>'],
 					A2(_user$project$Update$setActiveTab, _p26._0, model),
 					{ctor: '[]'});
 			case 'ToggleTabMenu':
 				return A2(
-					_user$project$Util_ops['=>'],
+					_NoRedInk$rocket_update$Rocket_ops['=>'],
 					_user$project$Update$setShowingAnyMenuTrue(
 						A3(_user$project$Update$toggleTabMenu, _p26._0, _p26._1, model)),
 					{ctor: '[]'});
 			case 'PinTabAtIndex':
 				return A2(
-					_user$project$Util_ops['=>'],
+					_NoRedInk$rocket_update$Rocket_ops['=>'],
 					_user$project$Update$closeAllMenus(
 						A2(
 							_user$project$Update$startPinTabAnimation,
@@ -24059,7 +24060,7 @@ var _user$project$Update$update = F2(
 			case 'FinishPinningTab':
 				var _p33 = _p26._0.oldTabIndex;
 				return A2(
-					_user$project$Util_ops['=>'],
+					_NoRedInk$rocket_update$Rocket_ops['=>'],
 					A2(_user$project$Update$pinTab, _p33, model),
 					{
 						ctor: '::',
@@ -24073,7 +24074,7 @@ var _user$project$Update$update = F2(
 					});
 			case 'UnpinTabAtIndex':
 				return A2(
-					_user$project$Util_ops['=>'],
+					_NoRedInk$rocket_update$Rocket_ops['=>'],
 					_user$project$Update$closeAllMenus(
 						A2(
 							_user$project$Update$startUnPinTabAnimation,
@@ -24083,7 +24084,7 @@ var _user$project$Update$update = F2(
 			case 'FinishUnpinningTab':
 				var _p34 = _p26._0.oldTabIndex;
 				return A2(
-					_user$project$Util_ops['=>'],
+					_NoRedInk$rocket_update$Rocket_ops['=>'],
 					A3(_user$project$Update$unpinTab, _p34, _p26._0.newTabIndex, model),
 					{
 						ctor: '::',
@@ -24098,7 +24099,7 @@ var _user$project$Update$update = F2(
 			case 'CloseTabAtIndex':
 				var _p35 = _p26._0;
 				return A2(
-					_user$project$Util_ops['=>'],
+					_NoRedInk$rocket_update$Rocket_ops['=>'],
 					_user$project$Update$closeAllMenus(
 						A2(_user$project$Update$closeTab, _p35, model)),
 					(_elm_lang$core$Native_Utils.cmp(
@@ -24115,7 +24116,7 @@ var _user$project$Update$update = F2(
 					} : {ctor: '[]'});
 			case 'CloseTabsOtherThanIndex':
 				return A2(
-					_user$project$Util_ops['=>'],
+					_NoRedInk$rocket_update$Rocket_ops['=>'],
 					_user$project$Update$closeAllMenus(
 						A2(_user$project$Update$closeTabsOtherThanIndex, _p26._0, model)),
 					{
@@ -24126,7 +24127,7 @@ var _user$project$Update$update = F2(
 			case 'CloseTabsToTheRightOfIndex':
 				var _p36 = _p26._0;
 				return A2(
-					_user$project$Util_ops['=>'],
+					_NoRedInk$rocket_update$Rocket_ops['=>'],
 					_user$project$Update$closeAllMenus(
 						A2(_user$project$Update$closeTabsToTheRightOfIndex, _p36, model)),
 					{
@@ -24136,13 +24137,13 @@ var _user$project$Update$update = F2(
 					});
 			case 'CloseAllMenus':
 				return A2(
-					_user$project$Util_ops['=>'],
+					_NoRedInk$rocket_update$Rocket_ops['=>'],
 					_user$project$Update$setShowingAnyMenuFalse(
 						_user$project$Update$closeAllMenus(model)),
 					{ctor: '[]'});
 			case 'AddTab':
 				return A2(
-					_user$project$Util_ops['=>'],
+					_NoRedInk$rocket_update$Rocket_ops['=>'],
 					A2(
 						_user$project$Update$addTab,
 						_user$project$Model$tabFromId(model.nextTabId),
@@ -24154,14 +24155,14 @@ var _user$project$Update$update = F2(
 					});
 			case 'NewTabWidth':
 				return A2(
-					_user$project$Util_ops['=>'],
+					_NoRedInk$rocket_update$Rocket_ops['=>'],
 					_elm_lang$core$Native_Utils.update(
 						model,
 						{flexTabWidth: _p26._0}),
 					{ctor: '[]'});
 			default:
 				return A2(
-					_user$project$Util_ops['=>'],
+					_NoRedInk$rocket_update$Rocket_ops['=>'],
 					model,
 					{
 						ctor: '::',
@@ -25143,7 +25144,7 @@ var _user$project$View$view = function (model) {
 
 var _user$project$Main$main = _elm_lang$html$Html$program(
 	{
-		init: _user$project$Util$batchInit(
+		init: _NoRedInk$rocket_update$Rocket$batchInit(
 			{
 				ctor: '_Tuple2',
 				_0: _user$project$Model$initialModel,
@@ -25154,7 +25155,7 @@ var _user$project$Main$main = _elm_lang$html$Html$program(
 				}
 			}),
 		update: function (_p0) {
-			return _user$project$Util$batchUpdate(
+			return _NoRedInk$rocket_update$Rocket$batchUpdate(
 				_user$project$Update$update(_p0));
 		},
 		view: _user$project$View$view,
