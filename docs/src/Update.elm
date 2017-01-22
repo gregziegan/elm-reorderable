@@ -7,10 +7,11 @@ import DOM
 import Keyboard.Extra
 import Messages exposing (Msg(..))
 import Model exposing (..)
-import Types exposing (..)
 import Ports
 import Reorderable.State exposing (Bounds, Placeholder, Point)
 import Reorderable.Update exposing (dropAndShift)
+import Rocket exposing ((=>))
+import Types exposing (..)
 import Util exposing (..)
 
 
