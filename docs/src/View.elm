@@ -11,9 +11,8 @@ import Messages exposing (..)
 import Model exposing (Model)
 import Mouse
 import Reorderable.State exposing (State, ViewableReorderable(..))
-import Svg exposing (Svg)
 import Types exposing (PinPlaceholder(..), PinningPlaceholder, ReorderItem(..), SlidingPlaceholder, TabClickInfo, TabMenu, TabMenuItem(..), UnPinningPlaceholder, Logo(..), Tab, tabMenuItemToString, tabMenuItems, toLogo)
-import Svgs exposing (viewClose, viewElmLogo)
+import Logos exposing (viewClose, viewElmLogo, viewElixirLogo, viewHaskellLogo)
 import Util exposing (defaultPrevented, toPx)
 
 
@@ -279,11 +278,17 @@ viewPlaceholderDetails isPinned index tab =
     ]
 
 
-tabToLogo : Tab -> Svg msg
+tabToLogo : Tab -> Html msg
 tabToLogo tab =
     case toLogo tab.icon of
         Elm ->
             viewElmLogo
+
+        Elixir ->
+            viewElixirLogo
+
+        Haskell ->
+            viewHaskellLogo
 
 
 viewCloseButton : Int -> Html Msg

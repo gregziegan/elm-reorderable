@@ -47,7 +47,16 @@ titleFromId id =
 
 tabFromId : Int -> Tab
 tabFromId id =
-    { id = id + 1, title = titleFromId (id + 1), icon = "ElmLogo", isPinned = False }
+    let
+        icon =
+            if id % 3 == 0 then
+                "Elm"
+            else if id % 3 == 1 then
+                "Elixir"
+            else
+                "Haskell"
+    in
+        { id = id + 1, title = titleFromId (id + 1), icon = icon, isPinned = False }
 
 
 initialModel : Model
@@ -56,7 +65,7 @@ initialModel =
         ( keyboardModel, _ ) =
             Keyboard.Extra.init
     in
-        { selected = { id = 1, title = "First Tab", icon = "ElmLogo", isPinned = False }
+        { selected = { id = 1, title = "Tab 1", icon = "Elm", isPinned = False }
         , pinPlaceholder = Nothing
         , pinPlaceholderStyle = Animation.style []
         , placeholderAnimationStyle = Animation.style []

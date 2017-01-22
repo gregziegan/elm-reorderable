@@ -47,11 +47,6 @@ type ReorderItem
     | PinDestBackdrop
 
 
-type OverflowArea
-    = MoreTab
-    | Expanded
-
-
 type alias TabMenu =
     { tabIndex : Int
     , position : Mouse.Position
@@ -78,6 +73,8 @@ type alias Tab =
 
 type Logo
     = Elm
+    | Elixir
+    | Haskell
 
 
 type alias TabClickInfo =
@@ -91,6 +88,12 @@ toLogo str =
     case str of
         "Elm" ->
             Elm
+
+        "Elixir" ->
+            Elixir
+
+        "Haskell" ->
+            Haskell
 
         _ ->
             Elm

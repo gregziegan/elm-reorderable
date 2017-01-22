@@ -22142,6 +22142,366 @@ var _ohanhi$keyboard_extra$Keyboard_Extra$targetKey = A2(
 	_ohanhi$keyboard_extra$Keyboard_Extra$fromCode,
 	A2(_elm_lang$core$Json_Decode$field, 'keyCode', _elm_lang$core$Json_Decode$int));
 
+var _user$project$Logos$viewClose = A2(
+	_elm_lang$svg$Svg$svg,
+	{
+		ctor: '::',
+		_0: _elm_lang$svg$Svg_Attributes$viewBox('0 0 7 7'),
+		_1: {
+			ctor: '::',
+			_0: _elm_lang$svg$Svg_Attributes$class('tab-close-svg'),
+			_1: {ctor: '[]'}
+		}
+	},
+	{
+		ctor: '::',
+		_0: A2(
+			_elm_lang$svg$Svg$g,
+			{
+				ctor: '::',
+				_0: _elm_lang$svg$Svg_Attributes$stroke('currentColor'),
+				_1: {
+					ctor: '::',
+					_0: _elm_lang$svg$Svg_Attributes$strokeWidth('1.5'),
+					_1: {
+						ctor: '::',
+						_0: _elm_lang$svg$Svg_Attributes$strokeLinecap('round'),
+						_1: {
+							ctor: '::',
+							_0: _elm_lang$svg$Svg_Attributes$strokeLinejoin('round'),
+							_1: {ctor: '[]'}
+						}
+					}
+				}
+			},
+			{
+				ctor: '::',
+				_0: A2(
+					_elm_lang$svg$Svg$path,
+					{
+						ctor: '::',
+						_0: _elm_lang$svg$Svg_Attributes$d('M6,6 L1,1'),
+						_1: {ctor: '[]'}
+					},
+					{ctor: '[]'}),
+				_1: {
+					ctor: '::',
+					_0: A2(
+						_elm_lang$svg$Svg$path,
+						{
+							ctor: '::',
+							_0: _elm_lang$svg$Svg_Attributes$d('M1,6 L6,1'),
+							_1: {ctor: '[]'}
+						},
+						{ctor: '[]'}),
+					_1: {ctor: '[]'}
+				}
+			}),
+		_1: {ctor: '[]'}
+	});
+var _user$project$Logos$viewHaskellLogo = A2(
+	_elm_lang$html$Html$div,
+	{ctor: '[]'},
+	{
+		ctor: '::',
+		_0: A2(
+			_elm_lang$svg$Svg$svg,
+			{
+				ctor: '::',
+				_0: _elm_lang$svg$Svg_Attributes$class('tab-logo-svg'),
+				_1: {
+					ctor: '::',
+					_0: _elm_lang$svg$Svg_Attributes$viewBox('0 0 481.8897 340.1574'),
+					_1: {
+						ctor: '::',
+						_0: _elm_lang$svg$Svg_Attributes$version('1.1'),
+						_1: {ctor: '[]'}
+					}
+				}
+			},
+			{
+				ctor: '::',
+				_0: A2(
+					_elm_lang$svg$Svg$defs,
+					{ctor: '[]'},
+					{
+						ctor: '::',
+						_0: A2(
+							_elm_lang$svg$Svg$clipPath,
+							{
+								ctor: '::',
+								_0: _elm_lang$svg$Svg_Attributes$id('clip1'),
+								_1: {ctor: '[]'}
+							},
+							{
+								ctor: '::',
+								_0: A2(
+									_elm_lang$svg$Svg$path,
+									{
+										ctor: '::',
+										_0: _elm_lang$svg$Svg_Attributes$d('M 0 340.15625 L 481.890625 340.15625 L 481.890625 0 L 0 0 L 0 340.15625 Z M 0 340.15625 '),
+										_1: {ctor: '[]'}
+									},
+									{ctor: '[]'}),
+								_1: {ctor: '[]'}
+							}),
+						_1: {ctor: '[]'}
+					}),
+				_1: {
+					ctor: '::',
+					_0: A2(
+						_elm_lang$svg$Svg$g,
+						{
+							ctor: '::',
+							_0: _elm_lang$svg$Svg_Attributes$id('surface0'),
+							_1: {ctor: '[]'}
+						},
+						{
+							ctor: '::',
+							_0: A2(
+								_elm_lang$svg$Svg$g,
+								{
+									ctor: '::',
+									_0: _elm_lang$svg$Svg_Attributes$clipPath('url(#clip1)'),
+									_1: {
+										ctor: '::',
+										_0: _elm_lang$svg$Svg_Attributes$clipRule('nonzero'),
+										_1: {ctor: '[]'}
+									}
+								},
+								{
+									ctor: '::',
+									_0: A2(
+										_elm_lang$svg$Svg$path,
+										{
+											ctor: '::',
+											_0: _elm_lang$svg$Svg_Attributes$style(' stroke:none;fill-rule: nonzero; fill: rgb(40%,40%,40%); fill-opacity: 1;'),
+											_1: {
+												ctor: '::',
+												_0: _elm_lang$svg$Svg_Attributes$d('M 0 340.15625 L 113.386719 170.078125 L 0 0 L 85.039062 0 L 198.425781 170.078125 L 85.039062 340.15625 L 0 340.15625 Z M 0 340.15625 '),
+												_1: {ctor: '[]'}
+											}
+										},
+										{ctor: '[]'}),
+									_1: {
+										ctor: '::',
+										_0: A2(
+											_elm_lang$svg$Svg$path,
+											{
+												ctor: '::',
+												_0: _elm_lang$svg$Svg_Attributes$style(' stroke:none;fill-rule: nonzero; fill: rgb(60%,60%,60%); fill-opacity: 1;'),
+												_1: {
+													ctor: '::',
+													_0: _elm_lang$svg$Svg_Attributes$d('M 113.386719 340.15625 L 226.773438 170.078125 L 113.386719 0 L 198.425781 0 L 425.195312 340.15625 L 340.15625 340.15625 L 269.292969 233.859375 L 198.425781 340.15625 L 113.386719 340.15625 Z M 113.386719 340.15625 '),
+													_1: {ctor: '[]'}
+												}
+											},
+											{ctor: '[]'}),
+										_1: {
+											ctor: '::',
+											_0: A2(
+												_elm_lang$svg$Svg$path,
+												{
+													ctor: '::',
+													_0: _elm_lang$svg$Svg_Attributes$style(' stroke:none;fill-rule: nonzero; fill: rgb(40%,40%,40%); fill-opacity: 1;'),
+													_1: {
+														ctor: '::',
+														_0: _elm_lang$svg$Svg_Attributes$d('M 387.402344 240.945312 L 349.609375 184.253906 L 481.890625 184.25 L 481.890625 240.945312 L 387.402344 240.945312 Z M 387.402344 240.945312 '),
+														_1: {ctor: '[]'}
+													}
+												},
+												{ctor: '[]'}),
+											_1: {
+												ctor: '::',
+												_0: A2(
+													_elm_lang$svg$Svg$path,
+													{
+														ctor: '::',
+														_0: _elm_lang$svg$Svg_Attributes$style(' stroke:none;fill-rule: nonzero; fill: rgb(40%,40%,40%); fill-opacity: 1;'),
+														_1: {
+															ctor: '::',
+															_0: _elm_lang$svg$Svg_Attributes$d('M 330.710938 155.90625 L 292.914062 99.214844 L 481.890625 99.210938 L 481.890625 155.90625 L 330.710938 155.90625 Z M 330.710938 155.90625 '),
+															_1: {ctor: '[]'}
+														}
+													},
+													{ctor: '[]'}),
+												_1: {ctor: '[]'}
+											}
+										}
+									}
+								}),
+							_1: {ctor: '[]'}
+						}),
+					_1: {ctor: '[]'}
+				}
+			}),
+		_1: {ctor: '[]'}
+	});
+var _user$project$Logos$viewElixirLogo = A2(
+	_elm_lang$html$Html$img,
+	{
+		ctor: '::',
+		_0: _elm_lang$html$Html_Attributes$class('tab-logo-svg'),
+		_1: {
+			ctor: '::',
+			_0: _elm_lang$html$Html_Attributes$src('assets/elixir-logo.png'),
+			_1: {ctor: '[]'}
+		}
+	},
+	{ctor: '[]'});
+var _user$project$Logos$viewElmLogo = A2(
+	_elm_lang$html$Html$div,
+	{ctor: '[]'},
+	{
+		ctor: '::',
+		_0: A2(
+			_elm_lang$svg$Svg$svg,
+			{
+				ctor: '::',
+				_0: _elm_lang$svg$Svg_Attributes$version('1.1'),
+				_1: {
+					ctor: '::',
+					_0: _elm_lang$svg$Svg_Attributes$x('0'),
+					_1: {
+						ctor: '::',
+						_0: _elm_lang$svg$Svg_Attributes$y('0'),
+						_1: {
+							ctor: '::',
+							_0: _elm_lang$svg$Svg_Attributes$viewBox('0 0 323.141 322.95'),
+							_1: {
+								ctor: '::',
+								_0: _elm_lang$svg$Svg_Attributes$class('tab-logo-svg'),
+								_1: {ctor: '[]'}
+							}
+						}
+					}
+				}
+			},
+			{
+				ctor: '::',
+				_0: A2(
+					_elm_lang$svg$Svg$polygon,
+					{
+						ctor: '::',
+						_0: _elm_lang$svg$Svg_Attributes$fill('#F0AD00'),
+						_1: {
+							ctor: '::',
+							_0: _elm_lang$svg$Svg_Attributes$points('161.649,152.782 231.514,82.916 91.783,82.916'),
+							_1: {ctor: '[]'}
+						}
+					},
+					{ctor: '[]'}),
+				_1: {
+					ctor: '::',
+					_0: A2(
+						_elm_lang$svg$Svg$polygon,
+						{
+							ctor: '::',
+							_0: _elm_lang$svg$Svg_Attributes$fill('#7FD13B'),
+							_1: {
+								ctor: '::',
+								_0: _elm_lang$svg$Svg_Attributes$points('8.867,0 79.241,70.375 232.213,70.375 161.838,0'),
+								_1: {ctor: '[]'}
+							}
+						},
+						{ctor: '[]'}),
+					_1: {
+						ctor: '::',
+						_0: A2(
+							_elm_lang$svg$Svg$rect,
+							{
+								ctor: '::',
+								_0: _elm_lang$svg$Svg_Attributes$fill('#7FD13B'),
+								_1: {
+									ctor: '::',
+									_0: _elm_lang$svg$Svg_Attributes$x('192.99'),
+									_1: {
+										ctor: '::',
+										_0: _elm_lang$svg$Svg_Attributes$y('107.392'),
+										_1: {
+											ctor: '::',
+											_0: _elm_lang$svg$Svg_Attributes$width('107.676'),
+											_1: {
+												ctor: '::',
+												_0: _elm_lang$svg$Svg_Attributes$height('108.167'),
+												_1: {
+													ctor: '::',
+													_0: _elm_lang$svg$Svg_Attributes$transform('matrix(0.7071 0.7071 -0.7071 0.7071 186.4727 -127.2386)'),
+													_1: {ctor: '[]'}
+												}
+											}
+										}
+									}
+								}
+							},
+							{ctor: '[]'}),
+						_1: {
+							ctor: '::',
+							_0: A2(
+								_elm_lang$svg$Svg$polygon,
+								{
+									ctor: '::',
+									_0: _elm_lang$svg$Svg_Attributes$fill('#60B5CC'),
+									_1: {
+										ctor: '::',
+										_0: _elm_lang$svg$Svg_Attributes$points('323.298,143.724 323.298,0 179.573,0'),
+										_1: {ctor: '[]'}
+									}
+								},
+								{ctor: '[]'}),
+							_1: {
+								ctor: '::',
+								_0: A2(
+									_elm_lang$svg$Svg$polygon,
+									{
+										ctor: '::',
+										_0: _elm_lang$svg$Svg_Attributes$fill('#5A6378'),
+										_1: {
+											ctor: '::',
+											_0: _elm_lang$svg$Svg_Attributes$points('152.781,161.649 0,8.868 0,314.432'),
+											_1: {ctor: '[]'}
+										}
+									},
+									{ctor: '[]'}),
+								_1: {
+									ctor: '::',
+									_0: A2(
+										_elm_lang$svg$Svg$polygon,
+										{
+											ctor: '::',
+											_0: _elm_lang$svg$Svg_Attributes$fill('#F0AD00'),
+											_1: {
+												ctor: '::',
+												_0: _elm_lang$svg$Svg_Attributes$points('255.522,246.655 323.298,314.432 323.298,178.879'),
+												_1: {ctor: '[]'}
+											}
+										},
+										{ctor: '[]'}),
+									_1: {
+										ctor: '::',
+										_0: A2(
+											_elm_lang$svg$Svg$polygon,
+											{
+												ctor: '::',
+												_0: _elm_lang$svg$Svg_Attributes$fill('#60B5CC'),
+												_1: {
+													ctor: '::',
+													_0: _elm_lang$svg$Svg_Attributes$points('161.649,170.517 8.869,323.298 314.43,323.298'),
+													_1: {ctor: '[]'}
+												}
+											},
+											{ctor: '[]'}),
+										_1: {ctor: '[]'}
+									}
+								}
+							}
+						}
+					}
+				}
+			}),
+		_1: {ctor: '[]'}
+	});
+
 var _user$project$Reorderable_State$Point = F2(
 	function (a, b) {
 		return {x: a, y: b};
@@ -22754,8 +23114,6 @@ var _user$project$Types$UnPinSourceBackdrop = {ctor: 'UnPinSourceBackdrop'};
 var _user$project$Types$PinSourceBackdrop = {ctor: 'PinSourceBackdrop'};
 var _user$project$Types$DropPreview = {ctor: 'DropPreview'};
 var _user$project$Types$ReorderableTab = {ctor: 'ReorderableTab'};
-var _user$project$Types$Expanded = {ctor: 'Expanded'};
-var _user$project$Types$MoreTab = {ctor: 'MoreTab'};
 var _user$project$Types$CloseTabsToTheRight = function (a) {
 	return {ctor: 'CloseTabsToTheRight', _0: a};
 };
@@ -22791,13 +23149,20 @@ var _user$project$Types$tabMenuItems = F2(
 			}
 		};
 	});
+var _user$project$Types$Haskell = {ctor: 'Haskell'};
+var _user$project$Types$Elixir = {ctor: 'Elixir'};
 var _user$project$Types$Elm = {ctor: 'Elm'};
 var _user$project$Types$toLogo = function (str) {
 	var _p1 = str;
-	if (_p1 === 'Elm') {
-		return _user$project$Types$Elm;
-	} else {
-		return _user$project$Types$Elm;
+	switch (_p1) {
+		case 'Elm':
+			return _user$project$Types$Elm;
+		case 'Elixir':
+			return _user$project$Types$Elixir;
+		case 'Haskell':
+			return _user$project$Types$Haskell;
+		default:
+			return _user$project$Types$Elm;
 	}
 };
 
@@ -22859,10 +23224,15 @@ var _user$project$Model$titleFromId = function (id) {
 		_elm_lang$core$Basics$toString(id));
 };
 var _user$project$Model$tabFromId = function (id) {
+	var icon = _elm_lang$core$Native_Utils.eq(
+		A2(_elm_lang$core$Basics_ops['%'], id, 3),
+		0) ? 'Elm' : (_elm_lang$core$Native_Utils.eq(
+		A2(_elm_lang$core$Basics_ops['%'], id, 3),
+		1) ? 'Elixir' : 'Haskell');
 	return {
 		id: id + 1,
 		title: _user$project$Model$titleFromId(id + 1),
-		icon: 'ElmLogo',
+		icon: icon,
 		isPinned: false
 	};
 };
@@ -22874,7 +23244,7 @@ var _user$project$Model$initialModel = function () {
 	var _p0 = _ohanhi$keyboard_extra$Keyboard_Extra$init;
 	var keyboardModel = _p0._0;
 	return {
-		selected: {id: 1, title: 'First Tab', icon: 'ElmLogo', isPinned: false},
+		selected: {id: 1, title: 'Tab 1', icon: 'Elm', isPinned: false},
 		pinPlaceholder: _elm_lang$core$Maybe$Nothing,
 		pinPlaceholderStyle: _mdgriffith$elm_style_animation$Animation$style(
 			{ctor: '[]'}),
@@ -23802,209 +24172,6 @@ var _user$project$Update$update = F2(
 		}
 	});
 
-var _user$project$Svgs$viewClose = A2(
-	_elm_lang$svg$Svg$svg,
-	{
-		ctor: '::',
-		_0: _elm_lang$svg$Svg_Attributes$viewBox('0 0 7 7'),
-		_1: {
-			ctor: '::',
-			_0: _elm_lang$svg$Svg_Attributes$class('tab-close-svg'),
-			_1: {ctor: '[]'}
-		}
-	},
-	{
-		ctor: '::',
-		_0: A2(
-			_elm_lang$svg$Svg$g,
-			{
-				ctor: '::',
-				_0: _elm_lang$svg$Svg_Attributes$stroke('currentColor'),
-				_1: {
-					ctor: '::',
-					_0: _elm_lang$svg$Svg_Attributes$strokeWidth('1.5'),
-					_1: {
-						ctor: '::',
-						_0: _elm_lang$svg$Svg_Attributes$strokeLinecap('round'),
-						_1: {
-							ctor: '::',
-							_0: _elm_lang$svg$Svg_Attributes$strokeLinejoin('round'),
-							_1: {ctor: '[]'}
-						}
-					}
-				}
-			},
-			{
-				ctor: '::',
-				_0: A2(
-					_elm_lang$svg$Svg$path,
-					{
-						ctor: '::',
-						_0: _elm_lang$svg$Svg_Attributes$d('M6,6 L1,1'),
-						_1: {ctor: '[]'}
-					},
-					{ctor: '[]'}),
-				_1: {
-					ctor: '::',
-					_0: A2(
-						_elm_lang$svg$Svg$path,
-						{
-							ctor: '::',
-							_0: _elm_lang$svg$Svg_Attributes$d('M1,6 L6,1'),
-							_1: {ctor: '[]'}
-						},
-						{ctor: '[]'}),
-					_1: {ctor: '[]'}
-				}
-			}),
-		_1: {ctor: '[]'}
-	});
-var _user$project$Svgs$viewElmLogo = A2(
-	_elm_lang$svg$Svg$svg,
-	{
-		ctor: '::',
-		_0: _elm_lang$svg$Svg_Attributes$version('1.1'),
-		_1: {
-			ctor: '::',
-			_0: _elm_lang$svg$Svg_Attributes$x('0'),
-			_1: {
-				ctor: '::',
-				_0: _elm_lang$svg$Svg_Attributes$y('0'),
-				_1: {
-					ctor: '::',
-					_0: _elm_lang$svg$Svg_Attributes$viewBox('0 0 323.141 322.95'),
-					_1: {
-						ctor: '::',
-						_0: _elm_lang$svg$Svg_Attributes$class('tab-logo-svg'),
-						_1: {ctor: '[]'}
-					}
-				}
-			}
-		}
-	},
-	{
-		ctor: '::',
-		_0: A2(
-			_elm_lang$svg$Svg$polygon,
-			{
-				ctor: '::',
-				_0: _elm_lang$svg$Svg_Attributes$fill('#F0AD00'),
-				_1: {
-					ctor: '::',
-					_0: _elm_lang$svg$Svg_Attributes$points('161.649,152.782 231.514,82.916 91.783,82.916'),
-					_1: {ctor: '[]'}
-				}
-			},
-			{ctor: '[]'}),
-		_1: {
-			ctor: '::',
-			_0: A2(
-				_elm_lang$svg$Svg$polygon,
-				{
-					ctor: '::',
-					_0: _elm_lang$svg$Svg_Attributes$fill('#7FD13B'),
-					_1: {
-						ctor: '::',
-						_0: _elm_lang$svg$Svg_Attributes$points('8.867,0 79.241,70.375 232.213,70.375 161.838,0'),
-						_1: {ctor: '[]'}
-					}
-				},
-				{ctor: '[]'}),
-			_1: {
-				ctor: '::',
-				_0: A2(
-					_elm_lang$svg$Svg$rect,
-					{
-						ctor: '::',
-						_0: _elm_lang$svg$Svg_Attributes$fill('#7FD13B'),
-						_1: {
-							ctor: '::',
-							_0: _elm_lang$svg$Svg_Attributes$x('192.99'),
-							_1: {
-								ctor: '::',
-								_0: _elm_lang$svg$Svg_Attributes$y('107.392'),
-								_1: {
-									ctor: '::',
-									_0: _elm_lang$svg$Svg_Attributes$width('107.676'),
-									_1: {
-										ctor: '::',
-										_0: _elm_lang$svg$Svg_Attributes$height('108.167'),
-										_1: {
-											ctor: '::',
-											_0: _elm_lang$svg$Svg_Attributes$transform('matrix(0.7071 0.7071 -0.7071 0.7071 186.4727 -127.2386)'),
-											_1: {ctor: '[]'}
-										}
-									}
-								}
-							}
-						}
-					},
-					{ctor: '[]'}),
-				_1: {
-					ctor: '::',
-					_0: A2(
-						_elm_lang$svg$Svg$polygon,
-						{
-							ctor: '::',
-							_0: _elm_lang$svg$Svg_Attributes$fill('#60B5CC'),
-							_1: {
-								ctor: '::',
-								_0: _elm_lang$svg$Svg_Attributes$points('323.298,143.724 323.298,0 179.573,0'),
-								_1: {ctor: '[]'}
-							}
-						},
-						{ctor: '[]'}),
-					_1: {
-						ctor: '::',
-						_0: A2(
-							_elm_lang$svg$Svg$polygon,
-							{
-								ctor: '::',
-								_0: _elm_lang$svg$Svg_Attributes$fill('#5A6378'),
-								_1: {
-									ctor: '::',
-									_0: _elm_lang$svg$Svg_Attributes$points('152.781,161.649 0,8.868 0,314.432'),
-									_1: {ctor: '[]'}
-								}
-							},
-							{ctor: '[]'}),
-						_1: {
-							ctor: '::',
-							_0: A2(
-								_elm_lang$svg$Svg$polygon,
-								{
-									ctor: '::',
-									_0: _elm_lang$svg$Svg_Attributes$fill('#F0AD00'),
-									_1: {
-										ctor: '::',
-										_0: _elm_lang$svg$Svg_Attributes$points('255.522,246.655 323.298,314.432 323.298,178.879'),
-										_1: {ctor: '[]'}
-									}
-								},
-								{ctor: '[]'}),
-							_1: {
-								ctor: '::',
-								_0: A2(
-									_elm_lang$svg$Svg$polygon,
-									{
-										ctor: '::',
-										_0: _elm_lang$svg$Svg_Attributes$fill('#60B5CC'),
-										_1: {
-											ctor: '::',
-											_0: _elm_lang$svg$Svg_Attributes$points('161.649,170.517 8.869,323.298 314.43,323.298'),
-											_1: {ctor: '[]'}
-										}
-									},
-									{ctor: '[]'}),
-								_1: {ctor: '[]'}
-							}
-						}
-					}
-				}
-			}
-		}
-	});
-
 var _user$project$View$viewTabMenuItem = F4(
 	function (tabRect, tab, pos, menuItem) {
 		var menuItemBehaviors = function () {
@@ -24204,14 +24371,21 @@ var _user$project$View$viewCloseButton = function (index) {
 				}),
 			_1: {
 				ctor: '::',
-				_0: _user$project$Svgs$viewClose,
+				_0: _user$project$Logos$viewClose,
 				_1: {ctor: '[]'}
 			}
 		});
 };
 var _user$project$View$tabToLogo = function (tab) {
 	var _p6 = _user$project$Types$toLogo(tab.icon);
-	return _user$project$Svgs$viewElmLogo;
+	switch (_p6.ctor) {
+		case 'Elm':
+			return _user$project$Logos$viewElmLogo;
+		case 'Elixir':
+			return _user$project$Logos$viewElixirLogo;
+		default:
+			return _user$project$Logos$viewHaskellLogo;
+	}
 };
 var _user$project$View$viewPlaceholderDetails = F3(
 	function (isPinned, index, tab) {

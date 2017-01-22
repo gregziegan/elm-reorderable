@@ -31,14 +31,13 @@ body {
 
 .tab-info {
   display: flex;
-  min-width: 20px;
 }
 
 .tab-titles {
   display: flex;
   flex-direction: column;
   padding: 0 5px;
-  min-width: 20px;
+  white-space: nowrap;
 }
 
 .tab-title {
