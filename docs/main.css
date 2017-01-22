@@ -190,12 +190,7 @@ body {
 [data-reorderable-index] {
 }
 
-.overflow-container {
-  display: flex;
-  flex-direction: column;
-}
-
-.more-tab {
+.add-tab {
   border: none;
   font-size: 12px;
   line-height: 14px;
@@ -205,65 +200,7 @@ body {
   justify-content: center;
   align-items: center;
   width: 75px;
-  height: 100%;
-}
-
-.more-tab-caret {
-  height: 20px;
-  width: 20px;
-}
-
-.overflow-menu {
-  position: absolute;
-  top: 54px;
-  z-index: 1;
-  border-radius: 4px;
-  box-shadow: 0 0 4px 0 rgba(0, 0, 0, 0.15), 0 4px 10px 0 rgba(0, 0, 0, 0.1);
-  margin-left: 8px;
-}
-
-.overflow-menu:before {
-  top: -.5em;
-  left: 1em;
-  transform: rotate(45deg);
-  background-color: inherit;
-  width: 1em;
-  height: 1em;
-  content: '';
-  position: absolute;
-  border-width: inherit;
-  border-style: inherit;
-  border-color: transparent;
-  background-clip: content-box;
-}
-
-.overflow-menu:after {
-  top: -.5em;
-  left: 1em;
-  z-index: -1;
-  position: absolute;
-  transform: rotate(45deg);
-  background-color: white;
-  width: 1em;
-  height: 1em;
-  content: '';
-  border: inherit;
-  box-shadow: inherit;
-}
-
-.overflow-tab {
-  background-color: white;
-  border-bottom: 0;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 10px;
-  cursor: pointer;
-  box-sizing: border-box;
-}
-
-.overflow-tab:hover {
-  background-color: #F8F8F8;
+  border-right: 1px solid #dddddd;
 }
 
 .tab--selected {

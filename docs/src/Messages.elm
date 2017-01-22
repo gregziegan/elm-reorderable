@@ -23,5 +23,6 @@ type Msg
     | CloseTabsOtherThanIndex Int
     | CloseTabsToTheRightOfIndex Int
     | CloseAllMenus
+    | AddTab
     | NewTabWidth Float
     | WindowResize Window.Size

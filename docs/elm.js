@@ -22807,6 +22807,7 @@ var _user$project$Messages$WindowResize = function (a) {
 var _user$project$Messages$NewTabWidth = function (a) {
 	return {ctor: 'NewTabWidth', _0: a};
 };
+var _user$project$Messages$AddTab = {ctor: 'AddTab'};
 var _user$project$Messages$CloseAllMenus = {ctor: 'CloseAllMenus'};
 var _user$project$Messages$CloseTabsToTheRightOfIndex = function (a) {
 	return {ctor: 'CloseTabsToTheRightOfIndex', _0: a};
@@ -22851,16 +22852,21 @@ var _user$project$Messages$AnimateMessenger = function (a) {
 	return {ctor: 'AnimateMessenger', _0: a};
 };
 
-var _user$project$Model$someTabs = _Skinney$elm_array_exploration$Array_Hamt$fromList(
-	{
-		ctor: '::',
-		_0: {id: 1, title: 'First Tab', icon: 'ElmLogo', isPinned: false},
-		_1: {
-			ctor: '::',
-			_0: {id: 2, title: 'Second Tab', icon: 'ElmLogo', isPinned: false},
-			_1: {ctor: '[]'}
-		}
-	});
+var _user$project$Model$titleFromId = function (id) {
+	return A2(
+		_elm_lang$core$Basics_ops['++'],
+		'Tab ',
+		_elm_lang$core$Basics$toString(id));
+};
+var _user$project$Model$tabFromId = function (id) {
+	return {
+		id: id + 1,
+		title: _user$project$Model$titleFromId(id + 1),
+		icon: 'ElmLogo',
+		isPinned: false
+	};
+};
+var _user$project$Model$someTabs = A2(_Skinney$elm_array_exploration$Array_Hamt$initialize, 5, _user$project$Model$tabFromId);
 var _user$project$Model$initDragState = function (tabs) {
 	return {placeholder: _elm_lang$core$Maybe$Nothing, items: tabs, reorderedItems: tabs, animating: false};
 };
@@ -22883,7 +22889,8 @@ var _user$project$Model$initialModel = function () {
 		dragState: _user$project$Model$initDragState(_user$project$Model$someTabs),
 		flexTabWidth: 0,
 		pinnedTabWidth: 60,
-		showingAnyMenu: false
+		showingAnyMenu: false,
+		nextTabId: _Skinney$elm_array_exploration$Array_Hamt$length(_user$project$Model$someTabs)
 	};
 }();
 var _user$project$Model$Model = function (a) {
@@ -22898,7 +22905,9 @@ var _user$project$Model$Model = function (a) {
 									return function (j) {
 										return function (k) {
 											return function (l) {
-												return {selected: a, pinPlaceholder: b, pinPlaceholderStyle: c, placeholderAnimationStyle: d, tabMenu: e, keyboardModel: f, pinDestinationStyle: g, pinStartBackdropStyle: h, dragState: i, flexTabWidth: j, pinnedTabWidth: k, showingAnyMenu: l};
+												return function (m) {
+													return {selected: a, pinPlaceholder: b, pinPlaceholderStyle: c, placeholderAnimationStyle: d, tabMenu: e, keyboardModel: f, pinDestinationStyle: g, pinStartBackdropStyle: h, dragState: i, flexTabWidth: j, pinnedTabWidth: k, showingAnyMenu: l, nextTabId: m};
+												};
 											};
 										};
 									};
@@ -23020,6 +23029,16 @@ var _user$project$Util$toPx = function (num) {
 		'px');
 };
 
+var _user$project$Update$addTab = F2(
+	function (tab, model) {
+		return _elm_lang$core$Native_Utils.update(
+			model,
+			{
+				dragState: _user$project$Model$initDragState(
+					A2(_Skinney$elm_array_exploration$Array_Hamt$push, tab, model.dragState.items)),
+				nextTabId: model.nextTabId + 1
+			});
+	});
 var _user$project$Update$closeTabsToTheRightOfIndex = F2(
 	function (tabIndex, model) {
 		return _elm_lang$core$Native_Utils.update(
@@ -23751,6 +23770,18 @@ var _user$project$Update$update = F2(
 					_user$project$Update$setShowingAnyMenuFalse(
 						_user$project$Update$closeAllMenus(model)),
 					{ctor: '[]'});
+			case 'AddTab':
+				return A2(
+					_user$project$Util_ops['=>'],
+					A2(
+						_user$project$Update$addTab,
+						_user$project$Model$tabFromId(model.nextTabId),
+						model),
+					{
+						ctor: '::',
+						_0: _user$project$Ports$getFlexTabWidth(0),
+						_1: {ctor: '[]'}
+					});
 			case 'NewTabWidth':
 				return A2(
 					_user$project$Util_ops['=>'],
@@ -23771,56 +23802,6 @@ var _user$project$Update$update = F2(
 		}
 	});
 
-var _user$project$Svgs$viewDownCaret = A2(
-	_elm_lang$svg$Svg$svg,
-	{
-		ctor: '::',
-		_0: _elm_lang$svg$Svg_Attributes$viewBox('0 -3 17 20'),
-		_1: {ctor: '[]'}
-	},
-	{
-		ctor: '::',
-		_0: A2(
-			_elm_lang$svg$Svg$g,
-			{
-				ctor: '::',
-				_0: _elm_lang$svg$Svg_Attributes$stroke('#515151'),
-				_1: {
-					ctor: '::',
-					_0: _elm_lang$svg$Svg_Attributes$strokeWidth('2'),
-					_1: {
-						ctor: '::',
-						_0: _elm_lang$svg$Svg_Attributes$fill('none'),
-						_1: {
-							ctor: '::',
-							_0: _elm_lang$svg$Svg_Attributes$strokeLinecap('round'),
-							_1: {
-								ctor: '::',
-								_0: _elm_lang$svg$Svg_Attributes$strokeLinejoin('round'),
-								_1: {ctor: '[]'}
-							}
-						}
-					}
-				}
-			},
-			{
-				ctor: '::',
-				_0: A2(
-					_elm_lang$svg$Svg$polyline,
-					{
-						ctor: '::',
-						_0: _elm_lang$svg$Svg_Attributes$transform('translate(4, -2.5)'),
-						_1: {
-							ctor: '::',
-							_0: _elm_lang$svg$Svg_Attributes$points('0 8 3 11 6 8'),
-							_1: {ctor: '[]'}
-						}
-					},
-					{ctor: '[]'}),
-				_1: {ctor: '[]'}
-			}),
-		_1: {ctor: '[]'}
-	});
 var _user$project$Svgs$viewClose = A2(
 	_elm_lang$svg$Svg$svg,
 	{
@@ -24873,6 +24854,30 @@ var _user$project$View$viewNonPlaceholderTab = F4(
 	});
 var _user$project$View$viewTabs = F3(
 	function (model, maybeDestIndex, tabs) {
+		return _Skinney$elm_array_exploration$Array_Hamt$toList(
+			A2(
+				_Skinney$elm_array_exploration$Array_Hamt$indexedMap,
+				A2(_user$project$View$viewNonPlaceholderTab, model, maybeDestIndex),
+				tabs));
+	});
+var _user$project$View$viewAddButton = A2(
+	_elm_lang$html$Html$button,
+	{
+		ctor: '::',
+		_0: _elm_lang$html$Html_Attributes$class('add-tab'),
+		_1: {
+			ctor: '::',
+			_0: _elm_lang$html$Html_Events$onClick(_user$project$Messages$AddTab),
+			_1: {ctor: '[]'}
+		}
+	},
+	{
+		ctor: '::',
+		_0: _elm_lang$html$Html$text('Add +'),
+		_1: {ctor: '[]'}
+	});
+var _user$project$View$viewTabsAndAddButton = F3(
+	function (model, maybeDestIndex, tabs) {
 		return A2(
 			_elm_lang$html$Html$div,
 			{
@@ -24880,11 +24885,15 @@ var _user$project$View$viewTabs = F3(
 				_0: _elm_lang$html$Html_Attributes$class('tab-list'),
 				_1: {ctor: '[]'}
 			},
-			_Skinney$elm_array_exploration$Array_Hamt$toList(
-				A2(
-					_Skinney$elm_array_exploration$Array_Hamt$indexedMap,
-					A2(_user$project$View$viewNonPlaceholderTab, model, maybeDestIndex),
-					tabs)));
+			A3(
+				_elm_lang$core$Basics$flip,
+				_elm_lang$core$List$append,
+				{
+					ctor: '::',
+					_0: _user$project$View$viewAddButton,
+					_1: {ctor: '[]'}
+				},
+				A3(_user$project$View$viewTabs, model, maybeDestIndex, tabs)));
 	});
 var _user$project$View$view = function (model) {
 	var _p23 = function () {
@@ -24932,7 +24941,7 @@ var _user$project$View$view = function (model) {
 					},
 					{
 						ctor: '::',
-						_0: A3(_user$project$View$viewTabs, model, maybeDestIndex, model.dragState.reorderedItems),
+						_0: A3(_user$project$View$viewTabsAndAddButton, model, maybeDestIndex, model.dragState.reorderedItems),
 						_1: {
 							ctor: '::',
 							_0: placeholder,
@@ -24981,7 +24990,7 @@ var _user$project$Main$main = _elm_lang$html$Html$program(
 var Elm = {};
 Elm['Main'] = Elm['Main'] || {};
 if (typeof _user$project$Main$main !== 'undefined') {
-    _user$project$Main$main(Elm['Main'], 'Main', {"types":{"unions":{"Animation.Model.Tick":{"args":[],"tags":{"Tick":["Time.Time"]}},"Messages.Msg":{"args":[],"tags":{"CloseTabsToTheRightOfIndex":["Int"],"CloseAllMenus":[],"CloseTabAtIndex":["Int"],"FinishPinningTab":["Types.PinningPlaceholder"],"NewTabWidth":["Float"],"AnimateMessenger":["Animation.Msg"],"UnpinTabAtIndex":["Int","Types.Tab","DOM.Rectangle"],"PinTabAtIndex":["Int","Types.Tab","DOM.Rectangle"],"ToggleTabMenu":["Int","Types.TabClickInfo"],"SetActive":["Types.Tab"],"KeyboardExtraMsg":["Keyboard.Extra.Msg"],"FinishUnpinningTab":["Types.UnPinningPlaceholder"],"CloseTabsOtherThanIndex":["Int"],"FinishSlidingTab":["Types.SlidingPlaceholder"],"WindowResize":["Window.Size"],"DragMsg":["Reorderable.Update.DragMsg"]}},"Keyboard.Extra.Msg":{"args":[],"tags":{"Down":["Keyboard.KeyCode"],"Up":["Keyboard.KeyCode"]}},"Reorderable.Update.DragMsg":{"args":[],"tags":{"DragHold":["{ placeholder : { point : Reorderable.State.Point , bounds : Reorderable.State.Bounds } , reorderableBounds : List Reorderable.State.Bounds }"],"DragStop":[],"DragMove":["{ clientSize : Reorderable.State.Size , cursor : Reorderable.State.Point , placeholder : { point : Reorderable.State.Point , bounds : Reorderable.State.Bounds } , reorderableBounds : List Reorderable.State.Bounds }"],"DragStart":["{ sourceIndex : Int, point : Reorderable.State.Point }"]}}},"aliases":{"Types.SlidingPlaceholder":{"args":[],"type":"{ start : Reorderable.State.Point , end : Reorderable.State.Point , sourceTabIndex : Int , destTabIndex : Int , tab : Types.Tab }"},"Types.PinningPlaceholder":{"args":[],"type":"{ start : Reorderable.State.Point , end : Reorderable.State.Point , startWidth : Float , oldTabIndex : Int , newTabIndex : Int , tab : Types.Tab }"},"Types.TabClickInfo":{"args":[],"type":"{ position : Mouse.Position, rect : DOM.Rectangle }"},"Types.Tab":{"args":[],"type":"{ id : Int, title : String, icon : String, isPinned : Bool }"},"Mouse.Position":{"args":[],"type":"{ x : Int, y : Int }"},"Reorderable.State.Size":{"args":[],"type":"{ height : Float, width : Float }"},"Keyboard.KeyCode":{"args":[],"type":"Int"},"Types.UnPinningPlaceholder":{"args":[],"type":"{ start : Reorderable.State.Point , end : Reorderable.State.Point , endWidth : Float , oldTabIndex : Int , newTabIndex : Int , tab : Types.Tab }"},"Window.Size":{"args":[],"type":"{ width : Int, height : Int }"},"Reorderable.State.Bounds":{"args":[],"type":"{ top : Float, left : Float, bottom : Float, right : Float }"},"Reorderable.State.Point":{"args":[],"type":"{ x : Float, y : Float }"},"Time.Time":{"args":[],"type":"Float"},"DOM.Rectangle":{"args":[],"type":"{ top : Float, left : Float, width : Float, height : Float }"},"Animation.Msg":{"args":[],"type":"Animation.Model.Tick"}},"message":"Messages.Msg"},"versions":{"elm":"0.18.0"}});
+    _user$project$Main$main(Elm['Main'], 'Main', {"types":{"unions":{"Animation.Model.Tick":{"args":[],"tags":{"Tick":["Time.Time"]}},"Messages.Msg":{"args":[],"tags":{"CloseTabsToTheRightOfIndex":["Int"],"CloseAllMenus":[],"CloseTabAtIndex":["Int"],"FinishPinningTab":["Types.PinningPlaceholder"],"NewTabWidth":["Float"],"AnimateMessenger":["Animation.Msg"],"UnpinTabAtIndex":["Int","Types.Tab","DOM.Rectangle"],"PinTabAtIndex":["Int","Types.Tab","DOM.Rectangle"],"ToggleTabMenu":["Int","Types.TabClickInfo"],"SetActive":["Types.Tab"],"KeyboardExtraMsg":["Keyboard.Extra.Msg"],"FinishUnpinningTab":["Types.UnPinningPlaceholder"],"CloseTabsOtherThanIndex":["Int"],"FinishSlidingTab":["Types.SlidingPlaceholder"],"WindowResize":["Window.Size"],"AddTab":[],"DragMsg":["Reorderable.Update.DragMsg"]}},"Keyboard.Extra.Msg":{"args":[],"tags":{"Down":["Keyboard.KeyCode"],"Up":["Keyboard.KeyCode"]}},"Reorderable.Update.DragMsg":{"args":[],"tags":{"DragHold":["{ placeholder : { point : Reorderable.State.Point , bounds : Reorderable.State.Bounds } , reorderableBounds : List Reorderable.State.Bounds }"],"DragStop":[],"DragMove":["{ clientSize : Reorderable.State.Size , cursor : Reorderable.State.Point , placeholder : { point : Reorderable.State.Point , bounds : Reorderable.State.Bounds } , reorderableBounds : List Reorderable.State.Bounds }"],"DragStart":["{ sourceIndex : Int, point : Reorderable.State.Point }"]}}},"aliases":{"Types.SlidingPlaceholder":{"args":[],"type":"{ start : Reorderable.State.Point , end : Reorderable.State.Point , sourceTabIndex : Int , destTabIndex : Int , tab : Types.Tab }"},"Types.PinningPlaceholder":{"args":[],"type":"{ start : Reorderable.State.Point , end : Reorderable.State.Point , startWidth : Float , oldTabIndex : Int , newTabIndex : Int , tab : Types.Tab }"},"Types.TabClickInfo":{"args":[],"type":"{ position : Mouse.Position, rect : DOM.Rectangle }"},"Types.Tab":{"args":[],"type":"{ id : Int, title : String, icon : String, isPinned : Bool }"},"Mouse.Position":{"args":[],"type":"{ x : Int, y : Int }"},"Reorderable.State.Size":{"args":[],"type":"{ height : Float, width : Float }"},"Keyboard.KeyCode":{"args":[],"type":"Int"},"Types.UnPinningPlaceholder":{"args":[],"type":"{ start : Reorderable.State.Point , end : Reorderable.State.Point , endWidth : Float , oldTabIndex : Int , newTabIndex : Int , tab : Types.Tab }"},"Window.Size":{"args":[],"type":"{ width : Int, height : Int }"},"Reorderable.State.Bounds":{"args":[],"type":"{ top : Float, left : Float, bottom : Float, right : Float }"},"Reorderable.State.Point":{"args":[],"type":"{ x : Float, y : Float }"},"Time.Time":{"args":[],"type":"Float"},"DOM.Rectangle":{"args":[],"type":"{ top : Float, left : Float, width : Float, height : Float }"},"Animation.Msg":{"args":[],"type":"Animation.Model.Tick"}},"message":"Messages.Msg"},"versions":{"elm":"0.18.0"}});
 }
 
 if (typeof define === "function" && define['amd'])

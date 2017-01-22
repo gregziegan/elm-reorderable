@@ -13,7 +13,7 @@ import Mouse
 import Reorderable.State exposing (State, ViewableReorderable(..))
 import Svg exposing (Svg)
 import Types exposing (PinPlaceholder(..), PinningPlaceholder, ReorderItem(..), SlidingPlaceholder, TabClickInfo, TabMenu, TabMenuItem(..), UnPinningPlaceholder, Logo(..), Tab, tabMenuItemToString, tabMenuItems, toLogo)
-import Svgs exposing (viewClose, viewDownCaret, viewElmLogo)
+import Svgs exposing (viewClose, viewElmLogo)
 import Util exposing (defaultPrevented, toPx)
 
 
@@ -37,7 +37,7 @@ view model =
             [ viewTooltips model
             , div
                 [ class "tabs-container" ]
-                [ viewTabs model maybeDestIndex model.dragState.reorderedItems
+                [ viewTabsAndAddButton model maybeDestIndex model.dragState.reorderedItems
                 , placeholder
                 , model.pinPlaceholder
                     |> Maybe.map (viewPinPlaceholder model)
@@ -47,12 +47,28 @@ view model =
             ]
 
 
-viewTabs : Model -> Maybe Int -> Array Tab -> Html Msg
+viewAddButton : Html Msg
+viewAddButton =
+    button
+        [ class "add-tab"
+        , onClick AddTab
+        ]
+        [ text "Add +" ]
+
+
+viewTabsAndAddButton : Model -> Maybe Int -> Array Tab -> Html Msg
+viewTabsAndAddButton model maybeDestIndex tabs =
+    tabs
+        |> viewTabs model maybeDestIndex
+        |> flip List.append [ viewAddButton ]
+        |> div [ class "tab-list" ]
+
+
+viewTabs : Model -> Maybe Int -> Array Tab -> List (Html Msg)
 viewTabs model maybeDestIndex tabs =
     tabs
         |> Array.indexedMap (viewNonPlaceholderTab model maybeDestIndex)
         |> Array.toList
-        |> div [ class "tab-list" ]
 
 
 viewNonPlaceholderTab : Model -> Maybe Int -> Int -> Tab -> Html Msg

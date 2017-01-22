@@ -47,16 +47,3 @@ viewClose =
                 []
             ]
         ]
-
-
-viewDownCaret : Svg msg
-viewDownCaret =
-    svg
-        [ viewBox "0 -3 17 20" ]
-        [ g
-            [ stroke "#515151", strokeWidth "2", fill "none", strokeLinecap "round", strokeLinejoin "round" ]
-            [ polyline
-                [ transform "translate(4, -2.5)", points "0 8 3 11 6 8" ]
-                []
-            ]
-        ]

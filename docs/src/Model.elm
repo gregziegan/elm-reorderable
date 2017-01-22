@@ -22,6 +22,7 @@ type alias Model =
     , flexTabWidth : Float
     , pinnedTabWidth : Float
     , showingAnyMenu : Bool
+    , nextTabId : Int
     }
 
 
@@ -36,10 +37,17 @@ initDragState tabs =
 
 someTabs : Array Tab
 someTabs =
-    Array.fromList
-        [ { id = 1, title = "First Tab", icon = "ElmLogo", isPinned = False }
-        , { id = 2, title = "Second Tab", icon = "ElmLogo", isPinned = False }
-        ]
+    Array.initialize 5 tabFromId
+
+
+titleFromId : Int -> String
+titleFromId id =
+    "Tab " ++ toString id
+
+
+tabFromId : Int -> Tab
+tabFromId id =
+    { id = id + 1, title = titleFromId (id + 1), icon = "ElmLogo", isPinned = False }
 
 
 initialModel : Model
@@ -60,4 +68,5 @@ initialModel =
         , flexTabWidth = 0
         , pinnedTabWidth = 60
         , showingAnyMenu = False
+        , nextTabId = Array.length someTabs
         }

@@ -129,6 +129,11 @@ update msg model =
                 |> setShowingAnyMenuFalse
                 => []
 
+        AddTab ->
+            model
+                |> addTab (tabFromId model.nextTabId)
+                => [ Ports.getFlexTabWidth 0 ]
+
         NewTabWidth newTabWidth ->
             { model | flexTabWidth = newTabWidth }
                 => []
@@ -555,4 +560,15 @@ closeTabsToTheRightOfIndex tabIndex model =
             model.dragState.items
                 |> Array.slice 0 (tabIndex + 1)
                 |> initDragState
+    }
+
+
+addTab : Tab -> Model -> Model
+addTab tab model =
+    { model
+        | dragState =
+            model.dragState.items
+                |> Array.push tab
+                |> initDragState
+        , nextTabId = model.nextTabId + 1
     }
