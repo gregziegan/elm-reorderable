@@ -24926,41 +24926,19 @@ var _user$project$View$viewTabReorderItem = F4(
 		var _p23 = reorderItem;
 		switch (_p23.ctor) {
 			case 'ReorderableTab':
-				return viewTab;
+				return {
+					ctor: '::',
+					_0: viewTab,
+					_1: {ctor: '[]'}
+				};
 			case 'DropPreview':
-				return A2(
-					_elm_lang$html$Html$div,
-					{
-						ctor: '::',
-						_0: _elm_lang$html$Html_Attributes$class('drop-preview'),
-						_1: {
-							ctor: '::',
-							_0: _elm_lang$html$Html_Attributes$style(
-								{
-									ctor: '::',
-									_0: {
-										ctor: '_Tuple2',
-										_0: 'width',
-										_1: tab.isPinned ? _user$project$Util$toPx(model.pinnedTabWidth) : _user$project$Util$toPx(model.flexTabWidth)
-									},
-									_1: {ctor: '[]'}
-								}),
-							_1: {ctor: '[]'}
-						}
-					},
-					{
-						ctor: '::',
-						_0: viewTab,
-						_1: {ctor: '[]'}
-					});
-			case 'PinSourceBackdrop':
-				return A2(
-					_elm_lang$html$Html$div,
-					A2(
-						_elm_lang$core$Basics_ops['++'],
+				return {
+					ctor: '::',
+					_0: A2(
+						_elm_lang$html$Html$div,
 						{
 							ctor: '::',
-							_0: _elm_lang$html$Html_Attributes$class('pin-drop-preview'),
+							_0: _elm_lang$html$Html_Attributes$class('drop-preview'),
 							_1: {
 								ctor: '::',
 								_0: _elm_lang$html$Html_Attributes$style(
@@ -24969,85 +24947,111 @@ var _user$project$View$viewTabReorderItem = F4(
 										_0: {
 											ctor: '_Tuple2',
 											_0: 'width',
-											_1: _user$project$Util$toPx(model.flexTabWidth)
+											_1: tab.isPinned ? _user$project$Util$toPx(model.pinnedTabWidth) : _user$project$Util$toPx(model.flexTabWidth)
 										},
 										_1: {ctor: '[]'}
 									}),
 								_1: {ctor: '[]'}
 							}
 						},
-						_mdgriffith$elm_style_animation$Animation$render(model.pinStartBackdropStyle)),
-					{ctor: '[]'});
-			case 'UnPinSourceBackdrop':
-				return A2(
-					_elm_lang$html$Html$div,
-					A2(
-						_elm_lang$core$Basics_ops['++'],
 						{
-							ctor: '::',
-							_0: _elm_lang$html$Html_Attributes$class('pin-drop-preview'),
-							_1: {
-								ctor: '::',
-								_0: _elm_lang$html$Html_Attributes$style(
-									{
-										ctor: '::',
-										_0: {
-											ctor: '_Tuple2',
-											_0: 'width',
-											_1: _user$project$Util$toPx(model.pinnedTabWidth)
-										},
-										_1: {ctor: '[]'}
-									}),
-								_1: {ctor: '[]'}
-							}
-						},
-						_mdgriffith$elm_style_animation$Animation$render(model.pinStartBackdropStyle)),
-					{ctor: '[]'});
-			default:
-				return A2(
-					_elm_lang$html$Html$div,
-					{
-						ctor: '::',
-						_0: _elm_lang$html$Html_Attributes$style(
-							{
-								ctor: '::',
-								_0: {ctor: '_Tuple2', _0: 'display', _1: 'flex'},
-								_1: {ctor: '[]'}
-							}),
-						_1: {ctor: '[]'}
-					},
-					{
-						ctor: '::',
-						_0: A2(
-							_elm_lang$html$Html$div,
-							A2(
-								_elm_lang$core$Basics_ops['++'],
-								{
-									ctor: '::',
-									_0: _elm_lang$html$Html_Attributes$class('pin-drop-preview'),
-									_1: {
-										ctor: '::',
-										_0: _elm_lang$html$Html_Attributes$style(
-											{
-												ctor: '::',
-												_0: {
-													ctor: '_Tuple2',
-													_0: 'width',
-													_1: _user$project$Util$toPx(0)
-												},
-												_1: {ctor: '[]'}
-											}),
-										_1: {ctor: '[]'}
-									}
-								},
-								_mdgriffith$elm_style_animation$Animation$render(model.pinDestinationStyle)),
-							{ctor: '[]'}),
-						_1: {
 							ctor: '::',
 							_0: viewTab,
 							_1: {ctor: '[]'}
-						}
-					});
+						}),
+					_1: {ctor: '[]'}
+				};
+			case 'PinSourceBackdrop':
+				return {
+					ctor: '::',
+					_0: A2(
+						_elm_lang$html$Html$div,
+						A2(
+							_elm_lang$core$Basics_ops['++'],
+							{
+								ctor: '::',
+								_0: _elm_lang$html$Html_Attributes$class('pin-drop-preview'),
+								_1: {
+									ctor: '::',
+									_0: _elm_lang$html$Html_Attributes$style(
+										{
+											ctor: '::',
+											_0: {
+												ctor: '_Tuple2',
+												_0: 'width',
+												_1: _user$project$Util$toPx(model.flexTabWidth)
+											},
+											_1: {ctor: '[]'}
+										}),
+									_1: {ctor: '[]'}
+								}
+							},
+							_mdgriffith$elm_style_animation$Animation$render(model.pinStartBackdropStyle)),
+						{ctor: '[]'}),
+					_1: {ctor: '[]'}
+				};
+			case 'UnPinSourceBackdrop':
+				return {
+					ctor: '::',
+					_0: A2(
+						_elm_lang$html$Html$div,
+						A2(
+							_elm_lang$core$Basics_ops['++'],
+							{
+								ctor: '::',
+								_0: _elm_lang$html$Html_Attributes$class('pin-drop-preview'),
+								_1: {
+									ctor: '::',
+									_0: _elm_lang$html$Html_Attributes$style(
+										{
+											ctor: '::',
+											_0: {
+												ctor: '_Tuple2',
+												_0: 'width',
+												_1: _user$project$Util$toPx(model.pinnedTabWidth)
+											},
+											_1: {ctor: '[]'}
+										}),
+									_1: {ctor: '[]'}
+								}
+							},
+							_mdgriffith$elm_style_animation$Animation$render(model.pinStartBackdropStyle)),
+						{ctor: '[]'}),
+					_1: {ctor: '[]'}
+				};
+			default:
+				return {
+					ctor: '::',
+					_0: A2(
+						_elm_lang$html$Html$div,
+						A2(
+							_elm_lang$core$Basics_ops['++'],
+							{
+								ctor: '::',
+								_0: _elm_lang$html$Html_Attributes$class('pin-drop-preview'),
+								_1: {
+									ctor: '::',
+									_0: _elm_lang$html$Html_Attributes$style(
+										{
+											ctor: '::',
+											_0: {
+												ctor: '_Tuple2',
+												_0: 'width',
+												_1: _user$project$Util$toPx(0)
+											},
+											_1: {ctor: '[]'}
+										}),
+									_1: {ctor: '[]'}
+								}
+							},
+							_mdgriffith$elm_style_animation$Animation$render(model.pinDestinationStyle)),
+						{ctor: '[]'}),
+					_1: {
+						ctor: '::',
+						_0: viewTab,
+						_1: {ctor: '[]'}
+					}
+				};
 		}
 	});
 var _user$project$View$viewTooltipMask = function (showingAnyMenu) {
@@ -25090,11 +25094,12 @@ var _user$project$View$viewNonPlaceholderTab = F4(
 	});
 var _user$project$View$viewTabs = F3(
 	function (model, maybeDestIndex, tabs) {
-		return _Skinney$elm_array_exploration$Array_Hamt$toList(
-			A2(
-				_Skinney$elm_array_exploration$Array_Hamt$indexedMap,
-				A2(_user$project$View$viewNonPlaceholderTab, model, maybeDestIndex),
-				tabs));
+		return _elm_lang$core$List$concat(
+			_Skinney$elm_array_exploration$Array_Hamt$toList(
+				A2(
+					_Skinney$elm_array_exploration$Array_Hamt$indexedMap,
+					A2(_user$project$View$viewNonPlaceholderTab, model, maybeDestIndex),
+					tabs)));
 	});
 var _user$project$View$viewAddButton = A2(
 	_elm_lang$html$Html$button,
@@ -25149,7 +25154,11 @@ var _user$project$View$view = function (model) {
 		} else {
 			return {
 				ctor: '_Tuple2',
-				_0: _elm_lang$html$Html$text(''),
+				_0: {
+					ctor: '::',
+					_0: _elm_lang$html$Html$text(''),
+					_1: {ctor: '[]'}
+				},
 				_1: _elm_lang$core$Maybe$Nothing
 			};
 		}
@@ -25178,15 +25187,14 @@ var _user$project$View$view = function (model) {
 							_0: _elm_lang$html$Html_Attributes$class('tabs-container'),
 							_1: {ctor: '[]'}
 						},
-						{
-							ctor: '::',
-							_0: A3(_user$project$View$viewTabsAndAddButton, model, maybeDestIndex, model.dragState.reorderedItems),
-							_1: {
+						A2(
+							_elm_lang$core$Basics_ops['++'],
+							{
 								ctor: '::',
-								_0: _user$project$View$viewLanguageInfo(model.selected),
+								_0: A3(_user$project$View$viewTabsAndAddButton, model, maybeDestIndex, model.dragState.reorderedItems),
 								_1: {
 									ctor: '::',
-									_0: placeholder,
+									_0: _user$project$View$viewLanguageInfo(model.selected),
 									_1: {
 										ctor: '::',
 										_0: A2(
@@ -25199,8 +25207,8 @@ var _user$project$View$view = function (model) {
 										_1: {ctor: '[]'}
 									}
 								}
-							}
-						}),
+							},
+							placeholder)),
 					_1: {ctor: '[]'}
 				}
 			}

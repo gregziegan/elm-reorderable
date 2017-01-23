@@ -27,7 +27,7 @@ view model =
                     )
 
                 Nothing ->
-                    ( text ""
+                    ( [ text "" ]
                     , Nothing
                     )
     in
@@ -37,13 +37,14 @@ view model =
             , viewTooltipMask model.showingAnyMenu
             , div
                 [ class "tabs-container" ]
-                [ viewTabsAndAddButton model maybeDestIndex model.dragState.reorderedItems
-                , viewLanguageInfo model.selected
-                , placeholder
-                , model.pinPlaceholder
+                ([ viewTabsAndAddButton model maybeDestIndex model.dragState.reorderedItems
+                 , viewLanguageInfo model.selected
+                 , model.pinPlaceholder
                     |> Maybe.map (viewPinPlaceholder model)
                     |> Maybe.withDefault (text "")
-                ]
+                 ]
+                    ++ placeholder
+                )
             ]
 
 
@@ -69,9 +70,10 @@ viewTabs model maybeDestIndex tabs =
     tabs
         |> Array.indexedMap (viewNonPlaceholderTab model maybeDestIndex)
         |> Array.toList
+        |> List.concat
 
 
-viewNonPlaceholderTab : Model -> Maybe Int -> Int -> Tab -> Html Msg
+viewNonPlaceholderTab : Model -> Maybe Int -> Int -> Tab -> List (Html Msg)
 viewNonPlaceholderTab model maybeDestIndex index tab =
     viewTabReorderItem (NonPlaceholderReorderable tab) model maybeDestIndex index
 
@@ -96,7 +98,7 @@ viewTooltipMask showingAnyMenu =
 Displays a `ReorderItem`.
 This includes drop zones, pin backdrops, and viewable reorderables.
 -}
-viewTabReorderItem : ViewableReorderable Tab -> Model -> Maybe Int -> Int -> Html Msg
+viewTabReorderItem : ViewableReorderable Tab -> Model -> Maybe Int -> Int -> List (Html Msg)
 viewTabReorderItem viewableReorderable model maybeDestIndex index =
     let
         ( tab, attrs, isSelected, reorderItem ) =
@@ -201,10 +203,10 @@ viewTabReorderItem viewableReorderable model maybeDestIndex index =
     in
         case reorderItem of
             ReorderableTab ->
-                viewTab
+                [ viewTab ]
 
             DropPreview ->
-                div
+                [ div
                     [ class "drop-preview"
                     , style
                         [ ( "width"
@@ -216,9 +218,10 @@ viewTabReorderItem viewableReorderable model maybeDestIndex index =
                         ]
                     ]
                     [ viewTab ]
+                ]
 
             PinSourceBackdrop ->
-                div
+                [ div
                     ([ class "pin-drop-preview"
                      , style
                         [ ( "width", toPx <| model.flexTabWidth )
@@ -227,9 +230,10 @@ viewTabReorderItem viewableReorderable model maybeDestIndex index =
                         ++ Animation.render model.pinStartBackdropStyle
                     )
                     []
+                ]
 
             UnPinSourceBackdrop ->
-                div
+                [ div
                     ([ class "pin-drop-preview"
                      , style
                         [ ( "width", toPx <| model.pinnedTabWidth )
@@ -238,20 +242,20 @@ viewTabReorderItem viewableReorderable model maybeDestIndex index =
                         ++ Animation.render model.pinStartBackdropStyle
                     )
                     []
+                ]
 
             PinDestBackdrop ->
-                div [ style [ ( "display", "flex" ) ] ]
-                    [ div
-                        ([ class "pin-drop-preview"
-                         , style
-                            [ ( "width", toPx 0 )
-                            ]
-                         ]
-                            ++ Animation.render model.pinDestinationStyle
-                        )
-                        []
-                    , viewTab
-                    ]
+                [ div
+                    ([ class "pin-drop-preview"
+                     , style
+                        [ ( "width", toPx 0 )
+                        ]
+                     ]
+                        ++ Animation.render model.pinDestinationStyle
+                    )
+                    []
+                , viewTab
+                ]
 
 
 viewPinPlaceholder : Model -> PinPlaceholder -> Html Msg
