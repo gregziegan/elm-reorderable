@@ -1,3 +1,9 @@
+## A Browser-like tabs example
+
+These are some reorderable, pinnable tabs.
+Right click for a context menu to pin them.
+
+
 ## Development
 
 To run locally:

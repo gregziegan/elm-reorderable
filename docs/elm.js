@@ -24173,44 +24173,97 @@ var _user$project$Update$update = F2(
 		}
 	});
 
+var _user$project$View$viewLanguageInfo = function (tab) {
+	return A2(
+		_elm_lang$html$Html$div,
+		{
+			ctor: '::',
+			_0: _elm_lang$html$Html_Attributes$class('language-info'),
+			_1: {ctor: '[]'}
+		},
+		function () {
+			var _p0 = _user$project$Types$toLogo(tab.icon);
+			switch (_p0.ctor) {
+				case 'Elm':
+					return {
+						ctor: '::',
+						_0: A2(
+							_elm_lang$html$Html$p,
+							{ctor: '[]'},
+							{
+								ctor: '::',
+								_0: _elm_lang$html$Html$text('Elm is a domain-specific programming language for declaratively creating web browser-based graphical user interfaces. Elm is purely functional, and is developed with emphasis on usability, performance, and robustness. It advertises \"no runtime exceptions in practice,\" made possible by the Elm compiler\'s static type checking.'),
+								_1: {ctor: '[]'}
+							}),
+						_1: {ctor: '[]'}
+					};
+				case 'Elixir':
+					return {
+						ctor: '::',
+						_0: A2(
+							_elm_lang$html$Html$p,
+							{ctor: '[]'},
+							{
+								ctor: '::',
+								_0: _elm_lang$html$Html$text('Elixir is a functional, concurrent, general-purpose programming language that runs on the Erlang virtual machine (BEAM). Elixir builds on top of Erlang and shares the same abstractions for building distributed, fault-tolerant applications. Elixir also provides a productive tooling and an extensible design. The latter is supported by compile-time metaprogramming with macros and polymorphism via protocols.\n\nElixir is successfully used in the industry by companies such as Pinterest and Moz. Elixir is also used for web development, by companies such as Bleacher Report and Inverse, and for building embedded-systems. The community organizes yearly events in both United States and Europe as well as minor local events and conferences.'),
+								_1: {ctor: '[]'}
+							}),
+						_1: {ctor: '[]'}
+					};
+				default:
+					return {
+						ctor: '::',
+						_0: A2(
+							_elm_lang$html$Html$p,
+							{ctor: '[]'},
+							{
+								ctor: '::',
+								_0: _elm_lang$html$Html$text('Haskell /ˈhæskəl/ is a standardized, general-purpose purely functional programming language, with non-strict semantics and strong static typing. It is named after logician Haskell Curry. The latest standard of Haskell is Haskell 2010. As of May 2016, a group is working on the next version, Haskell 2020.\n\nHaskell features a type system with type inference and lazy evaluation. Type classes first appeared in the Haskell programming language. Its main implementation is the Glasgow Haskell Compiler.\n\nHaskell is based on the semantics, but not the syntax, of the language Miranda, which served to focus the efforts of the initial Haskell working group. Haskell is used widely in academia and also used in industry.'),
+								_1: {ctor: '[]'}
+							}),
+						_1: {ctor: '[]'}
+					};
+			}
+		}());
+};
 var _user$project$View$viewTabMenuItem = F4(
 	function (tabRect, tab, pos, menuItem) {
 		var menuItemBehaviors = function () {
-			var _p0 = menuItem;
-			switch (_p0.ctor) {
+			var _p1 = menuItem;
+			switch (_p1.ctor) {
 				case 'PinTab':
 					return {
 						ctor: '::',
 						_0: _elm_lang$html$Html_Events$onMouseDown(
-							A3(_user$project$Messages$PinTabAtIndex, _p0._0, tab, tabRect)),
+							A3(_user$project$Messages$PinTabAtIndex, _p1._0, tab, tabRect)),
 						_1: {ctor: '[]'}
 					};
 				case 'UnpinTab':
 					return {
 						ctor: '::',
 						_0: _elm_lang$html$Html_Events$onMouseDown(
-							A3(_user$project$Messages$UnpinTabAtIndex, _p0._0, tab, tabRect)),
+							A3(_user$project$Messages$UnpinTabAtIndex, _p1._0, tab, tabRect)),
 						_1: {ctor: '[]'}
 					};
 				case 'CloseTab':
 					return {
 						ctor: '::',
 						_0: _elm_lang$html$Html_Events$onMouseDown(
-							_user$project$Messages$CloseTabAtIndex(_p0._0)),
+							_user$project$Messages$CloseTabAtIndex(_p1._0)),
 						_1: {ctor: '[]'}
 					};
 				case 'CloseOtherTabs':
 					return {
 						ctor: '::',
 						_0: _elm_lang$html$Html_Events$onMouseDown(
-							_user$project$Messages$CloseTabsOtherThanIndex(_p0._0)),
+							_user$project$Messages$CloseTabsOtherThanIndex(_p1._0)),
 						_1: {ctor: '[]'}
 					};
 				default:
 					return {
 						ctor: '::',
 						_0: _elm_lang$html$Html_Events$onMouseDown(
-							_user$project$Messages$CloseTabsToTheRightOfIndex(_p0._0)),
+							_user$project$Messages$CloseTabsToTheRightOfIndex(_p1._0)),
 						_1: {ctor: '[]'}
 					};
 			}
@@ -24243,15 +24296,15 @@ var _user$project$View$viewTabMenuItem = F4(
 				_1: {ctor: '[]'}
 			});
 	});
-var _user$project$View$viewTabMenu = function (_p1) {
-	var _p2 = _p1;
-	var _p5 = _p2.tabIndex;
-	var _p4 = _p2.tab;
-	var _p3 = _p2.position;
+var _user$project$View$viewTabMenu = function (_p2) {
+	var _p3 = _p2;
+	var _p6 = _p3.tabIndex;
+	var _p5 = _p3.tab;
+	var _p4 = _p3.position;
 	var menuItems = A2(
 		_elm_lang$core$List$map,
-		A3(_user$project$View$viewTabMenuItem, _p2.tabRect, _p4, _p3),
-		A2(_user$project$Types$tabMenuItems, _p4.isPinned, _p5));
+		A3(_user$project$View$viewTabMenuItem, _p3.tabRect, _p5, _p4),
+		A2(_user$project$Types$tabMenuItems, _p5.isPinned, _p6));
 	var menuItemsWithDividers = _elm_lang$core$List$concat(
 		{
 			ctor: '::',
@@ -24296,7 +24349,7 @@ var _user$project$View$viewTabMenu = function (_p1) {
 					_user$project$Util$defaultPrevented,
 					A2(
 						_elm_lang$core$Json_Decode$map,
-						_user$project$Messages$ToggleTabMenu(_p5),
+						_user$project$Messages$ToggleTabMenu(_p6),
 						A3(
 							_elm_lang$core$Json_Decode$map2,
 							_user$project$Types$TabClickInfo,
@@ -24313,14 +24366,14 @@ var _user$project$View$viewTabMenu = function (_p1) {
 								_0: {
 									ctor: '_Tuple2',
 									_0: 'top',
-									_1: px(_p3.y)
+									_1: px(_p4.y)
 								},
 								_1: {
 									ctor: '::',
 									_0: {
 										ctor: '_Tuple2',
 										_0: 'left',
-										_1: px(_p3.x)
+										_1: px(_p4.x)
 									},
 									_1: {ctor: '[]'}
 								}
@@ -24378,8 +24431,8 @@ var _user$project$View$viewCloseButton = function (index) {
 		});
 };
 var _user$project$View$tabToLogo = function (tab) {
-	var _p6 = _user$project$Types$toLogo(tab.icon);
-	switch (_p6.ctor) {
+	var _p7 = _user$project$Types$toLogo(tab.icon);
+	switch (_p7.ctor) {
 		case 'Elm':
 			return _user$project$Logos$viewElmLogo;
 		case 'Elixir':
@@ -24464,9 +24517,9 @@ var _user$project$View$viewPlaceholderDetails = F3(
 		};
 	});
 var _user$project$View$viewPinningPlaceholder = F2(
-	function (model, _p7) {
-		var _p8 = _p7;
-		var _p9 = _p8.tab;
+	function (model, _p8) {
+		var _p9 = _p8;
+		var _p10 = _p9.tab;
 		return A2(
 			_elm_lang$html$Html$div,
 			A2(
@@ -24486,14 +24539,14 @@ var _user$project$View$viewPinningPlaceholder = F2(
 								_0: {
 									ctor: '_Tuple2',
 									_0: 'left',
-									_1: _user$project$Util$toPx(_p8.start.x)
+									_1: _user$project$Util$toPx(_p9.start.x)
 								},
 								_1: {
 									ctor: '::',
 									_0: {
 										ctor: '_Tuple2',
 										_0: 'width',
-										_1: _user$project$Util$toPx(_p8.startWidth)
+										_1: _user$project$Util$toPx(_p9.startWidth)
 									},
 									_1: {ctor: '[]'}
 								}
@@ -24525,7 +24578,7 @@ var _user$project$View$viewPinningPlaceholder = F2(
 									_0: {
 										ctor: '_Tuple2',
 										_0: 'tab--selected',
-										_1: _elm_lang$core$Native_Utils.eq(_p9.id, model.selected.id)
+										_1: _elm_lang$core$Native_Utils.eq(_p10.id, model.selected.id)
 									},
 									_1: {
 										ctor: '::',
@@ -24536,14 +24589,14 @@ var _user$project$View$viewPinningPlaceholder = F2(
 							}),
 						_1: {ctor: '[]'}
 					},
-					A3(_user$project$View$viewPlaceholderDetails, true, 0, _p9)),
+					A3(_user$project$View$viewPlaceholderDetails, true, 0, _p10)),
 				_1: {ctor: '[]'}
 			});
 	});
 var _user$project$View$viewUnPinningPlaceholder = F2(
-	function (model, _p10) {
-		var _p11 = _p10;
-		var _p12 = _p11.tab;
+	function (model, _p11) {
+		var _p12 = _p11;
+		var _p13 = _p12.tab;
 		return A2(
 			_elm_lang$html$Html$div,
 			A2(
@@ -24563,7 +24616,7 @@ var _user$project$View$viewUnPinningPlaceholder = F2(
 								_0: {
 									ctor: '_Tuple2',
 									_0: 'left',
-									_1: _user$project$Util$toPx(_p11.start.x)
+									_1: _user$project$Util$toPx(_p12.start.x)
 								},
 								_1: {
 									ctor: '::',
@@ -24602,7 +24655,7 @@ var _user$project$View$viewUnPinningPlaceholder = F2(
 									_0: {
 										ctor: '_Tuple2',
 										_0: 'tab--selected',
-										_1: _elm_lang$core$Native_Utils.eq(_p12.id, model.selected.id)
+										_1: _elm_lang$core$Native_Utils.eq(_p13.id, model.selected.id)
 									},
 									_1: {
 										ctor: '::',
@@ -24613,33 +24666,33 @@ var _user$project$View$viewUnPinningPlaceholder = F2(
 							}),
 						_1: {ctor: '[]'}
 					},
-					A3(_user$project$View$viewPlaceholderDetails, true, 0, _p12)),
+					A3(_user$project$View$viewPlaceholderDetails, true, 0, _p13)),
 				_1: {ctor: '[]'}
 			});
 	});
 var _user$project$View$viewPinPlaceholder = F2(
 	function (model, pinPlaceholder) {
-		var _p13 = pinPlaceholder;
-		if (_p13.ctor === 'Pinning') {
-			return A2(_user$project$View$viewPinningPlaceholder, model, _p13._0);
+		var _p14 = pinPlaceholder;
+		if (_p14.ctor === 'Pinning') {
+			return A2(_user$project$View$viewPinningPlaceholder, model, _p14._0);
 		} else {
-			return A2(_user$project$View$viewUnPinningPlaceholder, model, _p13._0);
+			return A2(_user$project$View$viewUnPinningPlaceholder, model, _p14._0);
 		}
 	});
 var _user$project$View$viewTabReorderItem = F4(
 	function (viewableReorderable, model, maybeDestIndex, index) {
-		var _p14 = function () {
-			var _p15 = viewableReorderable;
-			if (_p15.ctor === 'NonPlaceholderReorderable') {
-				var _p19 = _p15._0;
+		var _p15 = function () {
+			var _p16 = viewableReorderable;
+			if (_p16.ctor === 'NonPlaceholderReorderable') {
+				var _p20 = _p16._0;
 				var reorderItem = function () {
-					var _p16 = model.pinPlaceholder;
-					if (_p16.ctor === 'Just') {
-						var _p17 = _p16._0;
-						if (_p17.ctor === 'Pinning') {
-							return _elm_lang$core$Native_Utils.eq(_p17._0.oldTabIndex, index) ? _user$project$Types$PinSourceBackdrop : (_elm_lang$core$Native_Utils.eq(_p17._0.newTabIndex, index) ? _user$project$Types$PinDestBackdrop : _user$project$Types$ReorderableTab);
+					var _p17 = model.pinPlaceholder;
+					if (_p17.ctor === 'Just') {
+						var _p18 = _p17._0;
+						if (_p18.ctor === 'Pinning') {
+							return _elm_lang$core$Native_Utils.eq(_p18._0.oldTabIndex, index) ? _user$project$Types$PinSourceBackdrop : (_elm_lang$core$Native_Utils.eq(_p18._0.newTabIndex, index) ? _user$project$Types$PinDestBackdrop : _user$project$Types$ReorderableTab);
 						} else {
-							return _elm_lang$core$Native_Utils.eq(_p17._0.oldTabIndex, index) ? _user$project$Types$UnPinSourceBackdrop : (_elm_lang$core$Native_Utils.eq(_p17._0.newTabIndex, index) ? _user$project$Types$PinDestBackdrop : _user$project$Types$ReorderableTab);
+							return _elm_lang$core$Native_Utils.eq(_p18._0.oldTabIndex, index) ? _user$project$Types$UnPinSourceBackdrop : (_elm_lang$core$Native_Utils.eq(_p18._0.newTabIndex, index) ? _user$project$Types$PinDestBackdrop : _user$project$Types$ReorderableTab);
 						}
 					} else {
 						return _elm_lang$core$Native_Utils.eq(
@@ -24651,8 +24704,8 @@ var _user$project$View$viewTabReorderItem = F4(
 					{
 						ctor: '::',
 						_0: function () {
-							var _p18 = reorderItem;
-							if (_p18.ctor === 'DropPreview') {
+							var _p19 = reorderItem;
+							if (_p19.ctor === 'DropPreview') {
 								return {
 									ctor: '::',
 									_0: {ctor: '_Tuple2', _0: 'visibility', _1: 'hidden'},
@@ -24664,7 +24717,7 @@ var _user$project$View$viewTabReorderItem = F4(
 						}(),
 						_1: {
 							ctor: '::',
-							_0: _p19.isPinned ? {
+							_0: _p20.isPinned ? {
 								ctor: '::',
 								_0: {
 									ctor: '_Tuple2',
@@ -24678,44 +24731,48 @@ var _user$project$View$viewTabReorderItem = F4(
 					});
 				return {
 					ctor: '_Tuple4',
-					_0: _p19,
+					_0: _p20,
 					_1: {
 						ctor: '::',
-						_0: _elm_lang$html$Html_Attributes$class('draggable'),
+						_0: _elm_lang$html$Html_Attributes$href(
+							A2(
+								_elm_lang$core$Basics_ops['++'],
+								'#',
+								_elm_lang$core$Basics$toString(_p20.id))),
 						_1: {
 							ctor: '::',
-							_0: _elm_lang$html$Html_Attributes$classList(
-								{
-									ctor: '::',
-									_0: {ctor: '_Tuple2', _0: 'tab', _1: !_p19.isPinned},
-									_1: {
-										ctor: '::',
-										_0: {
-											ctor: '_Tuple2',
-											_0: 'tab--selected',
-											_1: _elm_lang$core$Native_Utils.eq(model.selected.id, _p19.id)
-										},
-										_1: {
-											ctor: '::',
-											_0: {ctor: '_Tuple2', _0: 'tab--pinned', _1: _p19.isPinned},
-											_1: {
-												ctor: '::',
-												_0: {
-													ctor: '_Tuple2',
-													_0: A2(
-														_elm_lang$core$Basics_ops['++'],
-														'tab-id-',
-														_elm_lang$core$Basics$toString(_p19.id)),
-													_1: true
-												},
-												_1: {ctor: '[]'}
-											}
-										}
-									}
-								}),
+							_0: _elm_lang$html$Html_Attributes$class('draggable tab-invisible-link'),
 							_1: {
 								ctor: '::',
-								_0: _elm_lang$html$Html_Events$onClick(_user$project$Messages$CloseAllMenus),
+								_0: _elm_lang$html$Html_Attributes$classList(
+									{
+										ctor: '::',
+										_0: {ctor: '_Tuple2', _0: 'tab', _1: !_p20.isPinned},
+										_1: {
+											ctor: '::',
+											_0: {
+												ctor: '_Tuple2',
+												_0: 'tab--selected',
+												_1: _elm_lang$core$Native_Utils.eq(model.selected.id, _p20.id)
+											},
+											_1: {
+												ctor: '::',
+												_0: {ctor: '_Tuple2', _0: 'tab--pinned', _1: _p20.isPinned},
+												_1: {
+													ctor: '::',
+													_0: {
+														ctor: '_Tuple2',
+														_0: A2(
+															_elm_lang$core$Basics_ops['++'],
+															'tab-id-',
+															_elm_lang$core$Basics$toString(_p20.id)),
+														_1: true
+													},
+													_1: {ctor: '[]'}
+												}
+											}
+										}
+									}),
 								_1: {
 									ctor: '::',
 									_0: _elm_lang$html$Html_Attributes$style(styles),
@@ -24744,9 +24801,13 @@ var _user$project$View$viewTabReorderItem = F4(
 															A2(_elm_lang$core$Json_Decode$field, 'currentTarget', _debois$elm_dom$DOM$boundingClientRect)))),
 												_1: {
 													ctor: '::',
-													_0: _elm_lang$html$Html_Events$onMouseDown(
-														_user$project$Messages$SetActive(_p19)),
-													_1: {ctor: '[]'}
+													_0: _elm_lang$html$Html_Events$onClick(
+														_user$project$Messages$SetActive(_p20)),
+													_1: {
+														ctor: '::',
+														_0: _elm_lang$html$Html_Events$onMouseDown(_user$project$Messages$CloseAllMenus),
+														_1: {ctor: '[]'}
+													}
 												}
 											}
 										}
@@ -24755,12 +24816,12 @@ var _user$project$View$viewTabReorderItem = F4(
 							}
 						}
 					},
-					_2: _elm_lang$core$Native_Utils.eq(model.selected.id, _p19.id),
+					_2: _elm_lang$core$Native_Utils.eq(model.selected.id, _p20.id),
 					_3: reorderItem
 				};
 			} else {
-				var _p21 = _p15._1;
-				var _p20 = _p15._0;
+				var _p22 = _p16._1;
+				var _p21 = _p16._0;
 				var styles = A2(
 					_elm_lang$core$Basics_ops['++'],
 					{
@@ -24771,14 +24832,14 @@ var _user$project$View$viewTabReorderItem = F4(
 							_0: {
 								ctor: '_Tuple2',
 								_0: 'left',
-								_1: _user$project$Util$toPx(_p21.x)
+								_1: _user$project$Util$toPx(_p22.x)
 							},
 							_1: {
 								ctor: '::',
 								_0: {
 									ctor: '_Tuple2',
 									_0: 'top',
-									_1: _user$project$Util$toPx(_p21.y)
+									_1: _user$project$Util$toPx(_p22.y)
 								},
 								_1: {
 									ctor: '::',
@@ -24788,7 +24849,7 @@ var _user$project$View$viewTabReorderItem = F4(
 							}
 						}
 					},
-					_p20.isPinned ? {
+					_p21.isPinned ? {
 						ctor: '::',
 						_0: {
 							ctor: '_Tuple2',
@@ -24811,12 +24872,12 @@ var _user$project$View$viewTabReorderItem = F4(
 					});
 				return {
 					ctor: '_Tuple4',
-					_0: _p20,
+					_0: _p21,
 					_1: A2(
 						_elm_lang$core$Basics_ops['++'],
 						{
 							ctor: '::',
-							_0: _elm_lang$html$Html_Attributes$class('draggable'),
+							_0: _elm_lang$html$Html_Attributes$class('draggable tab-invisible-link'),
 							_1: {
 								ctor: '::',
 								_0: _elm_lang$html$Html_Attributes$style(styles),
@@ -24825,17 +24886,17 @@ var _user$project$View$viewTabReorderItem = F4(
 									_0: _elm_lang$html$Html_Attributes$classList(
 										{
 											ctor: '::',
-											_0: {ctor: '_Tuple2', _0: 'tab', _1: !_p20.isPinned},
+											_0: {ctor: '_Tuple2', _0: 'tab', _1: !_p21.isPinned},
 											_1: {
 												ctor: '::',
 												_0: {
 													ctor: '_Tuple2',
 													_0: 'tab--selected',
-													_1: _elm_lang$core$Native_Utils.eq(model.selected.id, _p20.id)
+													_1: _elm_lang$core$Native_Utils.eq(model.selected.id, _p21.id)
 												},
 												_1: {
 													ctor: '::',
-													_0: {ctor: '_Tuple2', _0: 'tab--pinned', _1: _p20.isPinned},
+													_0: {ctor: '_Tuple2', _0: 'tab--pinned', _1: _p21.isPinned},
 													_1: {ctor: '[]'}
 												}
 											}
@@ -24849,21 +24910,21 @@ var _user$project$View$viewTabReorderItem = F4(
 							}
 						},
 						_mdgriffith$elm_style_animation$Animation$render(model.placeholderAnimationStyle)),
-					_2: _elm_lang$core$Native_Utils.eq(model.selected.id, _p20.id),
+					_2: _elm_lang$core$Native_Utils.eq(model.selected.id, _p21.id),
 					_3: _user$project$Types$ReorderableTab
 				};
 			}
 		}();
-		var tab = _p14._0;
-		var attrs = _p14._1;
-		var isSelected = _p14._2;
-		var reorderItem = _p14._3;
+		var tab = _p15._0;
+		var attrs = _p15._1;
+		var isSelected = _p15._2;
+		var reorderItem = _p15._3;
 		var viewTab = A2(
-			_elm_lang$html$Html$div,
+			_elm_lang$html$Html$a,
 			attrs,
 			A3(_user$project$View$viewPlaceholderDetails, tab.isPinned, index, tab));
-		var _p22 = reorderItem;
-		switch (_p22.ctor) {
+		var _p23 = reorderItem;
+		switch (_p23.ctor) {
 			case 'ReorderableTab':
 				return viewTab;
 			case 'DropPreview':
@@ -25071,19 +25132,19 @@ var _user$project$View$viewTabsAndAddButton = F3(
 				A3(_user$project$View$viewTabs, model, maybeDestIndex, tabs)));
 	});
 var _user$project$View$view = function (model) {
-	var _p23 = function () {
-		var _p24 = model.dragState.placeholder;
-		if (_p24.ctor === 'Just') {
-			var _p25 = _p24._0.destIndex;
+	var _p24 = function () {
+		var _p25 = model.dragState.placeholder;
+		if (_p25.ctor === 'Just') {
+			var _p26 = _p25._0.destIndex;
 			return {
 				ctor: '_Tuple2',
 				_0: A4(
 					_user$project$View$viewTabReorderItem,
-					A2(_user$project$Reorderable_State$PlaceholderReorderable, _p24._0.draggable, _p24._0.point),
+					A2(_user$project$Reorderable_State$PlaceholderReorderable, _p25._0.draggable, _p25._0.point),
 					model,
-					_p25,
-					_p24._0.sourceIndex),
-				_1: _p25
+					_p26,
+					_p25._0.sourceIndex),
+				_1: _p26
 			};
 		} else {
 			return {
@@ -25093,8 +25154,8 @@ var _user$project$View$view = function (model) {
 			};
 		}
 	}();
-	var placeholder = _p23._0;
-	var maybeDestIndex = _p23._1;
+	var placeholder = _p24._0;
+	var maybeDestIndex = _p24._1;
 	return A2(
 		_elm_lang$html$Html$div,
 		{
@@ -25107,35 +25168,39 @@ var _user$project$View$view = function (model) {
 			_0: _user$project$View$viewTooltips(model),
 			_1: {
 				ctor: '::',
-				_0: A2(
-					_elm_lang$html$Html$div,
-					{
-						ctor: '::',
-						_0: _elm_lang$html$Html_Attributes$class('tabs-container'),
-						_1: {ctor: '[]'}
-					},
-					{
-						ctor: '::',
-						_0: A3(_user$project$View$viewTabsAndAddButton, model, maybeDestIndex, model.dragState.reorderedItems),
-						_1: {
-							ctor: '::',
-							_0: placeholder,
-							_1: {
-								ctor: '::',
-								_0: A2(
-									_elm_lang$core$Maybe$withDefault,
-									_elm_lang$html$Html$text(''),
-									A2(
-										_elm_lang$core$Maybe$map,
-										_user$project$View$viewPinPlaceholder(model),
-										model.pinPlaceholder)),
-								_1: {ctor: '[]'}
-							}
-						}
-					}),
+				_0: _user$project$View$viewTooltipMask(model.showingAnyMenu),
 				_1: {
 					ctor: '::',
-					_0: _user$project$View$viewTooltipMask(model.showingAnyMenu),
+					_0: A2(
+						_elm_lang$html$Html$div,
+						{
+							ctor: '::',
+							_0: _elm_lang$html$Html_Attributes$class('tabs-container'),
+							_1: {ctor: '[]'}
+						},
+						{
+							ctor: '::',
+							_0: A3(_user$project$View$viewTabsAndAddButton, model, maybeDestIndex, model.dragState.reorderedItems),
+							_1: {
+								ctor: '::',
+								_0: _user$project$View$viewLanguageInfo(model.selected),
+								_1: {
+									ctor: '::',
+									_0: placeholder,
+									_1: {
+										ctor: '::',
+										_0: A2(
+											_elm_lang$core$Maybe$withDefault,
+											_elm_lang$html$Html$text(''),
+											A2(
+												_elm_lang$core$Maybe$map,
+												_user$project$View$viewPinPlaceholder(model),
+												model.pinPlaceholder)),
+										_1: {ctor: '[]'}
+									}
+								}
+							}
+						}),
 					_1: {ctor: '[]'}
 				}
 			}

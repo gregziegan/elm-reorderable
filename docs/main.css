@@ -8,12 +8,11 @@ body {
   right: 0;
   bottom: 0;
   left: 0;
-  z-index: -1;
-  pointer-events: visible;
 }
 
 .tabs-container {
   width: 80%;
+  padding-top: 50px;
 }
 
 .tab--pinned {
@@ -21,6 +20,7 @@ body {
   justify-content: space-around;
   align-items: center;
   height: 50px;
+  background-color: white;
 }
 
 .tab-logo {
@@ -67,6 +67,11 @@ body {
   display: flex;
   user-select: none;
   color: rgb(85, 85, 85);
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 50px;
+  width: 80%;
 }
 
 .tab {
@@ -184,6 +189,7 @@ body {
 #reorderable-placeholder {
   cursor: move;
   z-index: 2;
+  height: 50px;
 }
 
 [data-reorderable-index] {
@@ -204,4 +210,13 @@ body {
 
 .tab--selected {
   background-color: #f8f8f8;
+}
+
+.language-info {
+  padding: 20px;
+}
+
+.tab-invisible-link {
+  text-decoration: none;
+  color: inherit;
 }

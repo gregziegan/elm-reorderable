@@ -4,7 +4,7 @@ import Animation exposing (px)
 import Array.Hamt as Array exposing (Array)
 import DOM exposing (boundingClientRect, target)
 import Html exposing (..)
-import Html.Attributes exposing (attribute, class, classList, contextmenu, draggable, id, style)
+import Html.Attributes exposing (attribute, class, classList, contextmenu, draggable, href, id, style)
 import Html.Events exposing (Options, on, onClick, onMouseDown, onMouseEnter, onMouseUp, onWithOptions, onMouseEnter)
 import Json.Decode as Decode exposing (Decoder, at, field, float, int, string)
 import Messages exposing (..)
@@ -34,15 +34,16 @@ view model =
         div
             [ class "tabs-app" ]
             [ viewTooltips model
+            , viewTooltipMask model.showingAnyMenu
             , div
                 [ class "tabs-container" ]
                 [ viewTabsAndAddButton model maybeDestIndex model.dragState.reorderedItems
+                , viewLanguageInfo model.selected
                 , placeholder
                 , model.pinPlaceholder
                     |> Maybe.map (viewPinPlaceholder model)
                     |> Maybe.withDefault (text "")
                 ]
-            , viewTooltipMask model.showingAnyMenu
             ]
 
 
@@ -143,21 +144,22 @@ viewTabReorderItem viewableReorderable model maybeDestIndex index =
                                 ]
                     in
                         ( draggable
-                        , [ class "draggable"
+                        , [ href ("#" ++ toString draggable.id)
+                          , class "draggable tab-invisible-link"
                           , classList
                                 [ ( "tab", not draggable.isPinned )
                                 , ( "tab--selected", model.selected.id == draggable.id )
                                 , ( "tab--pinned", draggable.isPinned )
                                 , ( "tab-id-" ++ toString draggable.id, True )
                                 ]
-                          , onClick CloseAllMenus
                           , style styles
                           , attribute "data-reorderable-index" (toString index)
                           , contextmenu "tab-menu"
                           , Decode.map2 TabClickInfo Mouse.position (field "currentTarget" boundingClientRect)
                                 |> Decode.map (ToggleTabMenu index)
                                 |> onWithOptions "contextmenu" defaultPrevented
-                          , onMouseDown (SetActive draggable)
+                          , onClick (SetActive draggable)
+                          , onMouseDown CloseAllMenus
                           ]
                         , model.selected.id == draggable.id
                         , reorderItem
@@ -179,7 +181,7 @@ viewTabReorderItem viewableReorderable model maybeDestIndex index =
                                     [ ( "width", toPx model.flexTabWidth ) ]
                     in
                         ( draggable
-                        , ([ class "draggable"
+                        , ([ class "draggable tab-invisible-link"
                            , style styles
                            , classList
                                 [ ( "tab", not draggable.isPinned )
@@ -195,7 +197,7 @@ viewTabReorderItem viewableReorderable model maybeDestIndex index =
                         )
 
         viewTab =
-            div attrs (viewPlaceholderDetails tab.isPinned index tab)
+            a attrs (viewPlaceholderDetails tab.isPinned index tab)
     in
         case reorderItem of
             ReorderableTab ->
@@ -408,3 +410,17 @@ viewUnPinningPlaceholder model { start, tab } =
             ]
             (viewPlaceholderDetails True 0 tab)
         ]
+
+
+viewLanguageInfo : Tab -> Html Msg
+viewLanguageInfo tab =
+    div [ class "language-info" ] <|
+        case toLogo tab.icon of
+            Elm ->
+                [ p [] [ text "Elm is a domain-specific programming language for declaratively creating web browser-based graphical user interfaces. Elm is purely functional, and is developed with emphasis on usability, performance, and robustness. It advertises \"no runtime exceptions in practice,\" made possible by the Elm compiler's static type checking." ] ]
+
+            Elixir ->
+                [ p [] [ text "Elixir is a functional, concurrent, general-purpose programming language that runs on the Erlang virtual machine (BEAM). Elixir builds on top of Erlang and shares the same abstractions for building distributed, fault-tolerant applications. Elixir also provides a productive tooling and an extensible design. The latter is supported by compile-time metaprogramming with macros and polymorphism via protocols.\n\nElixir is successfully used in the industry by companies such as Pinterest and Moz. Elixir is also used for web development, by companies such as Bleacher Report and Inverse, and for building embedded-systems. The community organizes yearly events in both United States and Europe as well as minor local events and conferences." ] ]
+
+            Haskell ->
+                [ p [] [ text "Haskell /ˈhæskəl/ is a standardized, general-purpose purely functional programming language, with non-strict semantics and strong static typing. It is named after logician Haskell Curry. The latest standard of Haskell is Haskell 2010. As of May 2016, a group is working on the next version, Haskell 2020.\n\nHaskell features a type system with type inference and lazy evaluation. Type classes first appeared in the Haskell programming language. Its main implementation is the Glasgow Haskell Compiler.\n\nHaskell is based on the semantics, but not the syntax, of the language Miranda, which served to focus the efforts of the initial Haskell working group. Haskell is used widely in academia and also used in industry." ] ]
