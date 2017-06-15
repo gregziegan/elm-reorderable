@@ -180,8 +180,12 @@ getOverlapArea d0 d1 =
                 |> max 0
 
         overlap =
-            (xOverlap * yOverlap)
-                |> max 0
+            -- We need to check if both axis don't overlap.
+            -- We get incorrect results without this check, because -xOverlap * -yOverlap is greater than 0.
+            if xOverlap < 0 && yOverlap < 0 then
+                0
+            else
+                max 0 (xOverlap * yOverlap)
 
         overlapPlusLeft =
             overlap
