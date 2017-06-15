@@ -163,21 +163,11 @@ update msg dragInfo =
 getOverlapArea : Bounds -> Bounds -> ( Float, Bool )
 getOverlapArea d0 d1 =
     let
-        d0Width =
-            d0.right - d0.left
-
-        d1Width =
-            d1.right - d1.left
-
         xOverlap =
-            (min d0.right d1.right - max d0.left d1.left)
+            min d0.right d1.right - max d0.left d1.left
 
         yOverlap =
             min d0.bottom d1.bottom - max d0.top d1.top
-
-        halfWay =
-            ((d1Width - d0Width) * yOverlap)
-                |> max 0
 
         overlap =
             -- We need to check if both axis don't overlap.
@@ -186,22 +176,8 @@ getOverlapArea d0 d1 =
                 0
             else
                 max 0 (xOverlap * yOverlap)
-
-        overlapPlusLeft =
-            overlap
-                + ((max 0 (d0.left - d1.left)) * yOverlap)
-                |> max 0
     in
-        -- For dragging placeholders that are smaller than other items, determine destination by distance
-        if d0Width < d1Width then
-            if overlapPlusLeft >= halfWay && d0.right < d1.right then
-                ( d1Width * yOverlap, False )
-            else if overlapPlusLeft < halfWay && d0.right < d1.right && d0.left > d1.left then
-                ( 1, True )
-            else
-                ( 0, False )
-        else
-            ( overlap, False )
+    ( overlap, False )
 
 
 getMostOverlappingBounds : Bounds -> List Bounds -> Maybe ( Int, Bool )
